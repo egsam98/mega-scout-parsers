@@ -3,11 +3,13 @@ package main
 import (
 	"github.com/egsam98/MegaScout/parsers"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
 )
 
 func main() {
+	_ = godotenv.Load()
 	r := gin.Default()
 	r.GET("/countries", func(c *gin.Context) {
 		data, err := parsers.Countries()

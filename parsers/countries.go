@@ -10,7 +10,7 @@ import (
 
 func Countries() ([]gin.H, error) {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
-	service, err := selenium.NewGeckoDriverService("/home/egor/geckodriver", port+1)
+	service, err := selenium.NewGeckoDriverService(os.Getenv("GECKO_DRIVER_PATH"), port+1)
 	if err != nil {
 		return nil, err
 	}
