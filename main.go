@@ -6,15 +6,18 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 )
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	_ = godotenv.Load()
 	r := gin.Default()
 	r.GET("/countries", parseCountries)
 	r.GET("/seasons", parseSeasons)
 	r.GET("/leagues", parseLeagues)
+	r.GET("/team_compositions", parseTeamCompositions)
 	if err := r.Run(":" + os.Getenv("PORT")); err != nil {
 		log.Fatal(err)
 	}
@@ -52,10 +55,24 @@ func parseLeagues(c *gin.Context) {
 	}
 	leagues, err := parsers.Leagues(countryId, seasonPeriod)
 	if err != nil {
-		c.JSON(408, gin.H{
-			"error": err,
-		})
+		c.Status(408)
 		return
 	}
 	c.JSON(200, leagues)
+}
+
+func parseTeamCompositions(c *gin.Context) {
+	leagueUrl := c.Query("league_url")
+	if len(leagueUrl) == 0 {
+		c.JSON(400, gin.H{
+			"error": "league_url is not provided",
+		})
+		return
+	}
+	data, err := parsers.TeamCompositions(leagueUrl)
+	if err != nil {
+		c.Status(408)
+		return
+	}
+	c.JSON(200, data)
 }
