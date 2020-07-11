@@ -4,22 +4,19 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/tebeka/selenium"
+	"github.com/tebeka/selenium/firefox"
 	"os"
 	"strconv"
 )
 
 func Countries() ([]gin.H, error) {
-	port, _ := strconv.Atoi(os.Getenv("PORT"))
-	service, err := selenium.NewGeckoDriverService(os.Getenv("GECKO_DRIVER_PATH"), port+1)
+	service, driver, err := initSelenium()
 	if err != nil {
 		return nil, err
 	}
 	defer service.Stop()
-	driver, err := selenium.NewRemote(nil, fmt.Sprintf("http://localhost:%d", port+1))
-	if err != nil {
-		return nil, err
-	}
 	defer driver.Quit()
+
 	if err := driver.Get("https://www.transfermarkt.com"); err != nil {
 		return nil, err
 	}
@@ -52,4 +49,21 @@ func Countries() ([]gin.H, error) {
 		})
 	}
 	return countries, nil
+}
+
+func initSelenium() (*selenium.Service, selenium.WebDriver, error) {
+	port, _ := strconv.Atoi(os.Getenv("PORT"))
+	service, err := selenium.NewGeckoDriverService(os.Getenv("GECKODRIVER_PATH"), port+1)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	caps := selenium.Capabilities{"browserName": "firefox"}
+	firefoxCaps := firefox.Capabilities{
+		Binary: os.Getenv("FIREFOX_BIN"),
+		Args:   []string{"--headless"},
+	}
+	caps.AddFirefox(firefoxCaps)
+	driver, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d", port+1))
+	return service, driver, err
 }
