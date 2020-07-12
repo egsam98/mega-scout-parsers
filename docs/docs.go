@@ -24,7 +24,230 @@ var doc = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/countries": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Список стран",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Country"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/leagues": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Список лиг страны за определенный сезон",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID страны (напр. 141)",
+                        "name": "country",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Период сезона (напр. 2019)",
+                        "name": "season_period",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.League"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorJSON"
+                        }
+                    },
+                    "408": {}
+                }
+            }
+        },
+        "/seasons": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Список сезонов с 1900г. по текущий",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Season"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/team_compositions": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Список команд и игроков в них по соревнованию (лига \u0026 сезон)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL соревнования",
+                        "name": "league_url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Team"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorJSON"
+                        }
+                    },
+                    "408": {}
+                }
+            }
+        }
+    },
+    "definitions": {
+        "models.Country": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "В доработке",
+                    "type": "string",
+                    "example": "Russia"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 141
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Russia"
+                }
+            }
+        },
+        "models.ErrorJSON": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.League": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 17201
+                },
+                "logo": {
+                    "type": "string",
+                    "x-nullable": true,
+                    "example": "https://tmssl.akamaized.net/images/logo/normal/ru1.png?lm=1582769594"
+                },
+                "position": {
+                    "type": "string",
+                    "example": "First Tier"
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Premier Liga"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://transfermarkt.com/premier-liga/startseite/wettbewerb/RU1"
+                }
+            }
+        },
+        "models.Player": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 15570
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://transfermarkt.com/igor-akinfeev/profil/spieler/15570"
+                }
+            }
+        },
+        "models.Season": {
+            "type": "object",
+            "properties": {
+                "period": {
+                    "type": "integer",
+                    "example": 2019
+                },
+                "season_end": {
+                    "type": "string",
+                    "example": "30-06-2020"
+                },
+                "season_start": {
+                    "type": "string",
+                    "example": "01-07-2019"
+                }
+            }
+        },
+        "models.Team": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 2410
+                },
+                "players": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Player"
+                    }
+                },
+                "title": {
+                    "type": "string",
+                    "example": "CSKA Moscow"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://transfermarkt.com/zska-moskau/startseite/verein/2410/saison_id/2019"
+                }
+            }
+        }
+    }
 }`
 
 type swaggerInfo struct {

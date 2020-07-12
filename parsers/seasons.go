@@ -1,22 +1,23 @@
 package parsers
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/egsam98/MegaScout/models"
 	"time"
 )
 
-func Seasons() []gin.H {
+func Seasons() []models.Season {
 	today := time.Now()
-	seasons := make([]gin.H, 0, today.Year()+1-1900)
+	seasons := make([]models.Season, 0, today.Year()+1-1900)
 	for i := 1900; i <= today.Year(); i++ {
 		seasonStart := time.Date(i, 7, 1, 0, 0, 0, 0, time.UTC)
 		if seasonStart.After(today) {
 			continue
 		}
-		seasons = append(seasons, gin.H{
-			"period":       i,
-			"season_start": seasonStart,
-			"season_end":   time.Date(i+1, 6, 30, 0, 0, 0, 0, time.UTC),
+		seasons = append(seasons, models.Season{
+			Period:      i,
+			SeasonStart: seasonStart.Format("02-01-2006"),
+			SeasonEnd: time.Date(i+1, 6, 30, 0, 0, 0, 0, time.UTC).
+				Format("02-01-2006"),
 		})
 	}
 	return seasons

@@ -2,14 +2,14 @@ package parsers
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
+	"github.com/egsam98/MegaScout/models"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/firefox"
 	"os"
 	"strconv"
 )
 
-func Countries() ([]gin.H, error) {
+func Countries() ([]models.Country, error) {
 	service, driver, err := initSelenium()
 	if err != nil {
 		return nil, err
@@ -27,7 +27,7 @@ func Countries() ([]gin.H, error) {
 	if err := elem.Click(); err != nil {
 		return nil, err
 	}
-	countries := make([]gin.H, 0)
+	countries := make([]models.Country, 0)
 	elems, err := driver.FindElements(selenium.ByCSSSelector, "#land_select_breadcrumb > option")
 	if err != nil {
 		return nil, err
@@ -41,11 +41,12 @@ func Countries() ([]gin.H, error) {
 		if err != nil {
 			continue
 		}
-		name, _ := driver.ExecuteScript("return arguments[0].textContent", []interface{}{elem})
-		countries = append(countries, map[string]interface{}{
-			"country_id": id,
-			"name":       name,
-			"code":       name, //TODO: доделать
+		res, _ := driver.ExecuteScript("return arguments[0].textContent", []interface{}{elem})
+		name := res.(string)
+		countries = append(countries, models.Country{
+			Id:   id,
+			Name: name,
+			Code: name, //TODO: доделать
 		})
 	}
 	return countries, nil

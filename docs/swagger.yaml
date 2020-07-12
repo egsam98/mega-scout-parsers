@@ -1,5 +1,155 @@
+definitions:
+  models.Country:
+    properties:
+      code:
+        description: В доработке
+        example: Russia
+        type: string
+      id:
+        example: 141
+        type: integer
+      name:
+        example: Russia
+        type: string
+    type: object
+  models.ErrorJSON:
+    properties:
+      error:
+        type: string
+    type: object
+  models.League:
+    properties:
+      id:
+        example: 17201
+        type: integer
+      logo:
+        example: https://tmssl.akamaized.net/images/logo/normal/ru1.png?lm=1582769594
+        type: string
+        x-nullable: true
+      position:
+        example: First Tier
+        type: string
+      title:
+        example: Premier Liga
+        type: string
+      url:
+        example: https://transfermarkt.com/premier-liga/startseite/wettbewerb/RU1
+        type: string
+    type: object
+  models.Player:
+    properties:
+      id:
+        example: 15570
+        type: integer
+      url:
+        example: https://transfermarkt.com/igor-akinfeev/profil/spieler/15570
+        type: string
+    type: object
+  models.Season:
+    properties:
+      period:
+        example: 2019
+        type: integer
+      season_end:
+        example: 30-06-2020
+        type: string
+      season_start:
+        example: 01-07-2019
+        type: string
+    type: object
+  models.Team:
+    properties:
+      id:
+        example: 2410
+        type: integer
+      players:
+        items:
+          $ref: '#/definitions/models.Player'
+        type: array
+      title:
+        example: CSKA Moscow
+        type: string
+      url:
+        example: https://transfermarkt.com/zska-moskau/startseite/verein/2410/saison_id/2019
+        type: string
+    type: object
 info:
   contact: {}
   license: {}
-paths: {}
+paths:
+  /countries:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Country'
+            type: array
+      summary: Список стран
+  /leagues:
+    get:
+      parameters:
+      - description: ID страны (напр. 141)
+        in: query
+        name: country
+        required: true
+        type: integer
+      - description: Период сезона (напр. 2019)
+        in: query
+        name: season_period
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.League'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorJSON'
+        "408": {}
+      summary: Список лиг страны за определенный сезон
+  /seasons:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Season'
+            type: array
+      summary: Список сезонов с 1900г. по текущий
+  /team_compositions:
+    get:
+      parameters:
+      - description: URL соревнования
+        in: query
+        name: league_url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Team'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorJSON'
+        "408": {}
+      summary: Список команд и игроков в них по соревнованию (лига & сезон)
 swagger: "2.0"

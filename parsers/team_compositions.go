@@ -2,12 +2,12 @@ package parsers
 
 import (
 	"github.com/PuerkitoBio/goquery"
-	"github.com/gin-gonic/gin"
+	"github.com/egsam98/MegaScout/models"
 	"net/http"
 	"strconv"
 )
 
-func TeamCompositions(leagueUrl string) (teams []gin.H, _ error) {
+func TeamCompositions(leagueUrl string) (teams []models.Team, _ error) {
 	res, err := http.Get(leagueUrl)
 	if err != nil {
 		return nil, err
@@ -19,7 +19,7 @@ func TeamCompositions(leagueUrl string) (teams []gin.H, _ error) {
 	}
 	var innerError error
 	count := 0
-	teamChan := make(chan gin.H)
+	teamChan := make(chan models.Team)
 	doc.Find("#yw1 tbody > tr > td:nth-child(2) > a:nth-child(1)").Each(func(i int, a *goquery.Selection) {
 		if len(a.Text()) == 0 {
 			return
@@ -34,11 +34,11 @@ func TeamCompositions(leagueUrl string) (teams []gin.H, _ error) {
 			}
 			id, _ := strconv.Atoi(a.AttrOr("id", ""))
 
-			teamChan <- gin.H{
-				"club_id": id,
-				"url":     BaseUrl + url,
-				"title":   a.Text(),
-				"players": players,
+			teamChan <- models.Team{
+				Id:      id,
+				Url:     BaseUrl + url,
+				Title:   a.Text(),
+				Players: players,
 			}
 		}(a)
 	})
@@ -51,7 +51,7 @@ func TeamCompositions(leagueUrl string) (teams []gin.H, _ error) {
 	return teams, nil
 }
 
-func processPlayers(clubUrl string) (players []gin.H, _ error) {
+func processPlayers(clubUrl string) (players []models.Player, _ error) {
 	res, err := http.Get(clubUrl)
 	if err != nil {
 		return nil, err
@@ -68,9 +68,9 @@ func processPlayers(clubUrl string) (players []gin.H, _ error) {
 		tds := tr.Children()
 		a := tds.Find(".hauptlink a").First()
 		id, _ := strconv.Atoi(a.AttrOr("id", ""))
-		players = append(players, gin.H{
-			"id":  id,
-			"url": BaseUrl + a.AttrOr("href", ""),
+		players = append(players, models.Player{
+			Id:  id,
+			Url: BaseUrl + a.AttrOr("href", ""),
 		})
 	})
 	return players, nil

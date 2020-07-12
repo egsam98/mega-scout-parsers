@@ -3,7 +3,7 @@ package parsers
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/gin-gonic/gin"
+	"github.com/egsam98/MegaScout/models"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -12,7 +12,7 @@ import (
 
 const BaseUrl = "https://transfermarkt.com"
 
-func Leagues(countryId, seasonPeriod int) ([]gin.H, error) {
+func Leagues(countryId, seasonPeriod int) (leagues []models.League, _ error) {
 	url := fmt.Sprintf("%s/wettbewerbe/national/wettbewerbe/%d?saison_id=%d", BaseUrl, countryId, seasonPeriod)
 	res, err := http.Get(url)
 	if err != nil {
@@ -23,7 +23,6 @@ func Leagues(countryId, seasonPeriod int) ([]gin.H, error) {
 	if err != nil {
 		return nil, err
 	}
-	result := make([]gin.H, 0)
 	tier := ""
 	doc.Find("#yw1 tbody > tr").Each(func(i int, tr *goquery.Selection) {
 		if strings.Contains(tr.Text(), "Cup") {
@@ -40,25 +39,28 @@ func Leagues(countryId, seasonPeriod int) ([]gin.H, error) {
 		}
 		a := td.Find("a").Last()
 		href, _ := a.Attr("href")
+
 		logoStr, exists := td.Find("img").First().Attr("src")
-		logo := interface{}(logoStr)
+		var logo *string
 		if exists {
-			logo = strings.ReplaceAll(logoStr, "tiny", "normal")
+			logoStr = strings.ReplaceAll(logoStr, "tiny", "normal")
+			logo = &logoStr
 		} else {
 			logo = nil
 		}
+
 		regex, _ := regexp.Compile(`/saison_id/\d+/?`)
 		urlWithoutSeasonId := regex.Split(href, 2)[0]
 		splitted := strings.Split(urlWithoutSeasonId, "/")
-		result = append(result, gin.H{
-			"id":       generateId(splitted[len(splitted)-1]),
-			"url":      BaseUrl + urlWithoutSeasonId,
-			"title":    strings.Trim(td.Text(), "\t\n "),
-			"logo":     logo,
-			"position": tier,
+		leagues = append(leagues, models.League{
+			Id:       generateId(splitted[len(splitted)-1]),
+			Url:      BaseUrl + urlWithoutSeasonId,
+			Title:    strings.Trim(td.Text(), "\t\n "),
+			Logo:     logo,
+			Position: tier,
 		})
 	})
-	return result, nil
+	return leagues, nil
 }
 
 func generateId(id string) int {

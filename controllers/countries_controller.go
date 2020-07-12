@@ -5,6 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Router /countries [get]
+// @Summary Список стран
+// @Produce json
+// @Success 200 {array} models.Country
 func CountriesController(c *gin.Context) {
 	data, err := parsers.Countries()
 	if err != nil {
