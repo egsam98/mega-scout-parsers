@@ -15,5 +15,5 @@ func CountriesController(c *gin.Context) {
 		panic(err)
 	}
 	c.Header("Content-Type", "application/json")
-	c.JSON(200, data)
+	c.JSON(200, data.Slice())
 }

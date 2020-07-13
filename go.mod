@@ -14,6 +14,7 @@ require (
 	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/mailru/easyjson v0.7.1 // indirect
+	github.com/pariz/gountries v0.0.0-20200430155801-1c6a393df9c7
 	github.com/swaggo/swag v1.6.7
 	github.com/tebeka/selenium v0.9.9
 	github.com/urfave/cli/v2 v2.2.0 // indirect
