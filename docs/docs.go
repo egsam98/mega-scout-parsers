@@ -86,6 +86,38 @@ var doc = `{
                 }
             }
         },
+        "/player_detail": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Карточка игрока",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL игрока",
+                        "name": "url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.PlayerDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorJSON"
+                        }
+                    },
+                    "408": {}
+                }
+            }
+        },
         "/seasons": {
             "get": {
                 "produces": [
@@ -204,6 +236,79 @@ var doc = `{
                 "url": {
                     "type": "string",
                     "example": "https://transfermarkt.com/igor-akinfeev/profil/spieler/15570"
+                }
+            }
+        },
+        "models.PlayerDetail": {
+            "type": "object",
+            "properties": {
+                "age": {
+                    "description": "nullable",
+                    "type": "integer",
+                    "example": 24
+                },
+                "birth_country": {
+                    "description": "nullable",
+                    "type": "integer",
+                    "example": 9
+                },
+                "birth_date": {
+                    "description": "nullable",
+                    "type": "string",
+                    "example": "Feb 10, 1996"
+                },
+                "contract_expires": {
+                    "type": "string"
+                },
+                "contract_rental_expires": {
+                    "type": "string"
+                },
+                "contracts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "http://www.instagram.com/emanuel_mammana24/"
+                    ]
+                },
+                "country": {
+                    "description": "nullable",
+                    "type": "integer",
+                    "example": 9
+                },
+                "country_2": {
+                    "description": "Nullable",
+                    "type": "integer",
+                    "example": 75
+                },
+                "current_club": {
+                    "type": "integer",
+                    "example": 964
+                },
+                "current_rental": {
+                    "type": "integer"
+                },
+                "height": {
+                    "description": "nullable",
+                    "type": "integer",
+                    "example": 183
+                },
+                "image_url": {
+                    "type": "string",
+                    "example": "https://tmssl.akamaized.net/images/portrait/header/275512-1572532565.png?lm=1572532580"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Emanuel Mammana"
+                },
+                "position": {
+                    "type": "string",
+                    "example": "Defender - Centre-Back"
+                },
+                "shock_foot": {
+                    "type": "string",
+                    "example": "right"
                 }
             }
         },

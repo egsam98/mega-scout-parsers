@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
+	"github.com/egsam98/MegaScout/utils/slices"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -45,15 +46,13 @@ func Leagues(countryId, seasonPeriod int) (leagues []models.League, _ error) {
 		if exists {
 			logoStr = strings.ReplaceAll(logoStr, "tiny", "normal")
 			logo = &logoStr
-		} else {
-			logo = nil
 		}
 
 		regex, _ := regexp.Compile(`/saison_id/\d+/?`)
 		urlWithoutSeasonId := regex.Split(href, 2)[0]
-		splitted := strings.Split(urlWithoutSeasonId, "/")
+		idStr := slices.String_Last(strings.Split(urlWithoutSeasonId, "/"))
 		leagues = append(leagues, models.League{
-			Id:       generateId(splitted[len(splitted)-1]),
+			Id:       generateId(idStr),
 			Url:      BaseUrl + urlWithoutSeasonId,
 			Title:    strings.Trim(td.Text(), "\t\n "),
 			Logo:     logo,

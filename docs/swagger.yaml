@@ -45,6 +45,60 @@ definitions:
         example: https://transfermarkt.com/igor-akinfeev/profil/spieler/15570
         type: string
     type: object
+  models.PlayerDetail:
+    properties:
+      age:
+        description: nullable
+        example: 24
+        type: integer
+      birth_country:
+        description: nullable
+        example: 9
+        type: integer
+      birth_date:
+        description: nullable
+        example: Feb 10, 1996
+        type: string
+      contract_expires:
+        type: string
+      contract_rental_expires:
+        type: string
+      contracts:
+        example:
+        - http://www.instagram.com/emanuel_mammana24/
+        items:
+          type: string
+        type: array
+      country:
+        description: nullable
+        example: 9
+        type: integer
+      country_2:
+        description: Nullable
+        example: 75
+        type: integer
+      current_club:
+        example: 964
+        type: integer
+      current_rental:
+        type: integer
+      height:
+        description: nullable
+        example: 183
+        type: integer
+      image_url:
+        example: https://tmssl.akamaized.net/images/portrait/header/275512-1572532565.png?lm=1572532580
+        type: string
+      name:
+        example: Emanuel Mammana
+        type: string
+      position:
+        example: Defender - Centre-Back
+        type: string
+      shock_foot:
+        example: right
+        type: string
+    type: object
   models.Season:
     properties:
       period:
@@ -117,6 +171,27 @@ paths:
             $ref: '#/definitions/models.ErrorJSON'
         "408": {}
       summary: Список лиг страны за определенный сезон
+  /player_detail:
+    get:
+      parameters:
+      - description: URL игрока
+        in: query
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.PlayerDetail'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorJSON'
+        "408": {}
+      summary: Карточка игрока
   /seasons:
     get:
       produces:
