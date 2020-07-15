@@ -60,8 +60,10 @@ definitions:
         example: Feb 10, 1996
         type: string
       contract_expires:
+        description: nullable
         type: string
       contract_rental_expires:
+        description: nullable
         type: string
       contracts:
         example:
@@ -74,13 +76,15 @@ definitions:
         example: 9
         type: integer
       country_2:
-        description: Nullable
+        description: nullable
         example: 75
         type: integer
       current_club:
+        description: nullable
         example: 964
         type: integer
       current_rental:
+        description: nullable
         type: integer
       height:
         description: nullable
@@ -93,11 +97,17 @@ definitions:
         example: Emanuel Mammana
         type: string
       position:
+        description: nullable
         example: Defender - Centre-Back
         type: string
       shock_foot:
+        description: nullable
         example: right
         type: string
+      transfers:
+        items:
+          $ref: '#/definitions/models.Transfer'
+        type: array
     type: object
   models.Season:
     properties:
@@ -126,6 +136,37 @@ definitions:
       url:
         example: https://transfermarkt.com/zska-moskau/startseite/verein/2410/saison_id/2019
         type: string
+    type: object
+  models.Transfer:
+    properties:
+      cost:
+        description: nullable
+        example: €2.00m
+        type: string
+      date:
+        example: "2017-01-01T00:00:00Z"
+        type: string
+      fee:
+        description: nullable
+        example: €3.50m
+        type: string
+      from_team:
+        description: nullable
+        example: "28095"
+        type: string
+      season:
+        type: string
+      to_team:
+        description: nullable
+        example: "964"
+        type: string
+      transfer_type:
+        description: 1 - арена, 0 - все остальное
+        enum:
+        - 0
+        - 1
+        example: 0
+        type: integer
     type: object
 info:
   contact: {}

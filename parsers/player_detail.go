@@ -36,9 +36,10 @@ func PlayerDetail(playerUrl string) (*models.PlayerDetail, error) {
 	currentClub := team(findByTh(info, "Current club").Find("a").First())
 	onLoanFrom := team(findByTh(info, "On loan from").Find("a").First())
 
-	var currentRental *int
 	var contractExpires *string
+	var currentRental *int
 	var contractRentalExpires *string
+
 	if result := strings2.Delete(findByTh(info, "Contract expires").Text(), "-"); result != "" {
 		contractExpires = &result
 		if onLoanFrom != nil {
@@ -49,11 +50,10 @@ func PlayerDetail(playerUrl string) (*models.PlayerDetail, error) {
 		}
 	}
 
-	var birthDate = new(string)
+	var birthDate *string
 	if result := findByTh(info, "Date of birth").Text(); result != "" {
+		birthDate = new(string)
 		*birthDate = strings.Trim(result, "\n\t ")
-	} else {
-		birthDate = nil
 	}
 
 	var age *int
@@ -101,7 +101,7 @@ func PlayerDetail(playerUrl string) (*models.PlayerDetail, error) {
 		Position:              position,
 		ShockFoot:             shockFoot,
 		Contacts:              contacts,
-		//Transfers: transfers
+		Transfers:             transfers(playerUrl, doc),
 	}, nil
 }
 
@@ -113,36 +113,56 @@ func findByTh(info *goquery.Selection, header string) *goquery.Selection {
 	return tr.Find("td").First()
 }
 
-func transfers(doc *goquery.Document) (transfers []models.Transfer, _ error) {
-	var innerError error
-	doc.Find(".box.transferhistorie tbody > tr.zeile-transfer").EachWithBreak(func(_ int, tr *goquery.Selection) bool {
+func transfers(playerUrl string, doc *goquery.Document) (transfers []models.Transfer) {
+	doc.Find(".box.transferhistorie tbody > tr.zeile-transfer").Each(func(_ int, tr *goquery.Selection) {
 		tds := tr.Find("td")
-		fee := tds.Eq(11).Text()
-		var transferType uint
-		if strings.Contains("fee", "Loan") {
-			transferType = 1
-		} else {
-			transferType = 0
+
+		transferType := 0
+		var fee *string
+		if result := tds.Eq(11).Text(); result != "" && result != "-" && result != "?" {
+			fee = &result
+			if *fee == "Loan" {
+				transferType = 1
+			}
 		}
-		date, err := time.Parse("02-01-2006", tds.First().Text())
-		if err != nil {
-			innerError = err
-			return false
+
+		var date *string
+		dateFormatted := tds.Eq(1).Text()
+		if dateFormatted != "" {
+			result, err := time.Parse("Jan 2, 2006", dateFormatted)
+			if err != nil {
+				panic(err)
+			}
+			formatted := result.Format("02-01-2006")
+			date = &formatted
 		}
+
+		var cost *string
+		if result := tds.Eq(10).Text(); result != "" && result != "-" && result != "?" {
+			cost = &result
+		}
+
+		var fromTeam *string
+		if result, exists := tds.Eq(2).Find("a").First().Attr("id"); exists {
+			fromTeam = &result
+		}
+
+		toTeam, exists := tds.Eq(6).Find("a").First().Attr("id")
+		if !exists {
+			panic(fmt.Errorf("%s: transfer to team is absent", playerUrl))
+		}
+
 		transfers = append(transfers, models.Transfer{
 			TransferType: transferType,
 			Date:         date,
-			FromTeam:     tds.Eq(2).Find("a").First().AttrOr("id", ""),
-			ToTeam:       tds.Eq(6).Find("a").First().AttrOr("id", ""),
-			Cost:         tds.Eq(10).Text(),
+			Season:       tds.First().Text(),
+			FromTeam:     fromTeam,
+			ToTeam:       toTeam,
+			Cost:         cost,
 			Fee:          fee,
 		})
-		return true
 	})
-	if innerError != nil {
-		return nil, innerError
-	}
-	return transfers, nil
+	return transfers
 }
 
 func country(playerUrl string, img *goquery.Selection) *int {

@@ -258,9 +258,11 @@ var doc = `{
                     "example": "Feb 10, 1996"
                 },
                 "contract_expires": {
+                    "description": "nullable",
                     "type": "string"
                 },
                 "contract_rental_expires": {
+                    "description": "nullable",
                     "type": "string"
                 },
                 "contracts": {
@@ -278,15 +280,17 @@ var doc = `{
                     "example": 9
                 },
                 "country_2": {
-                    "description": "Nullable",
+                    "description": "nullable",
                     "type": "integer",
                     "example": 75
                 },
                 "current_club": {
+                    "description": "nullable",
                     "type": "integer",
                     "example": 964
                 },
                 "current_rental": {
+                    "description": "nullable",
                     "type": "integer"
                 },
                 "height": {
@@ -303,12 +307,20 @@ var doc = `{
                     "example": "Emanuel Mammana"
                 },
                 "position": {
+                    "description": "nullable",
                     "type": "string",
                     "example": "Defender - Centre-Back"
                 },
                 "shock_foot": {
+                    "description": "nullable",
                     "type": "string",
                     "example": "right"
+                },
+                "transfers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Transfer"
+                    }
                 }
             }
         },
@@ -349,6 +361,47 @@ var doc = `{
                 "url": {
                     "type": "string",
                     "example": "https://transfermarkt.com/zska-moskau/startseite/verein/2410/saison_id/2019"
+                }
+            }
+        },
+        "models.Transfer": {
+            "type": "object",
+            "properties": {
+                "cost": {
+                    "description": "nullable",
+                    "type": "string",
+                    "example": "€2.00m"
+                },
+                "date": {
+                    "type": "string",
+                    "example": "2017-01-01T00:00:00Z"
+                },
+                "fee": {
+                    "description": "nullable",
+                    "type": "string",
+                    "example": "€3.50m"
+                },
+                "from_team": {
+                    "description": "nullable",
+                    "type": "string",
+                    "example": "28095"
+                },
+                "season": {
+                    "type": "string"
+                },
+                "to_team": {
+                    "description": "nullable",
+                    "type": "string",
+                    "example": "964"
+                },
+                "transfer_type": {
+                    "description": "1 - арена, 0 - все остальное",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "example": 0
                 }
             }
         }

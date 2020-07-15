@@ -21,4 +21,5 @@ type PlayerDetail struct {
 	Position              *string  `json:"position" example:"Defender - Centre-Back"` // nullable
 	ShockFoot             *string  `json:"shock_foot" example:"right"`                // nullable
 	Contacts              []string `json:"contracts" example:"http://www.instagram.com/emanuel_mammana24/"`
+	Transfers             []Transfer
 }
