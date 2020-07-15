@@ -171,6 +171,38 @@ var doc = `{
                     "408": {}
                 }
             }
+        },
+        "/team_detail": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Карточка клуба",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL клуба",
+                        "name": "url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TeamDetail"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorJSON"
+                        }
+                    },
+                    "408": {}
+                }
+            }
         }
     },
     "definitions": {
@@ -361,6 +393,25 @@ var doc = `{
                 "url": {
                     "type": "string",
                     "example": "https://transfermarkt.com/zska-moskau/startseite/verein/2410/saison_id/2019"
+                }
+            }
+        },
+        "models.TeamDetail": {
+            "type": "object",
+            "properties": {
+                "country": {
+                    "type": "integer",
+                    "example": 141
+                },
+                "founded": {
+                    "description": "nullable",
+                    "type": "string",
+                    "example": "22-02-2008"
+                },
+                "logo": {
+                    "description": "nullable",
+                    "type": "string",
+                    "example": "https://tmssl.akamaized.net/images/wappen/head/16704.png?lm=1499524238"
                 }
             }
         },

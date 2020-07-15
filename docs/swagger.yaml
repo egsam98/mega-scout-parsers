@@ -137,6 +137,20 @@ definitions:
         example: https://transfermarkt.com/zska-moskau/startseite/verein/2410/saison_id/2019
         type: string
     type: object
+  models.TeamDetail:
+    properties:
+      country:
+        example: 141
+        type: integer
+      founded:
+        description: nullable
+        example: 22-02-2008
+        type: string
+      logo:
+        description: nullable
+        example: https://tmssl.akamaized.net/images/wappen/head/16704.png?lm=1499524238
+        type: string
+    type: object
   models.Transfer:
     properties:
       cost:
@@ -268,4 +282,25 @@ paths:
             $ref: '#/definitions/models.ErrorJSON'
         "408": {}
       summary: Список команд и игроков в них по соревнованию (лига & сезон)
+  /team_detail:
+    get:
+      parameters:
+      - description: URL клуба
+        in: query
+        name: url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TeamDetail'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorJSON'
+        "408": {}
+      summary: Карточка клуба
 swagger: "2.0"
