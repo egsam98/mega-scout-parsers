@@ -183,6 +183,41 @@
                     "408": {}
                 }
             }
+        },
+        "/trophies": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Трофеи игрока/тренера",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL игрока/тренера",
+                        "name": "person_url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Trophy"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorJSON"
+                        }
+                    },
+                    "408": {}
+                }
+            }
         }
     },
     "definitions": {
@@ -433,6 +468,39 @@
                         1
                     ],
                     "example": 0
+                }
+            }
+        },
+        "models.Trophy": {
+            "type": "object",
+            "properties": {
+                "event": {
+                    "description": "nullable",
+                    "type": "string",
+                    "example": "null"
+                },
+                "event_url": {
+                    "description": "nullable",
+                    "type": "string",
+                    "example": "null"
+                },
+                "season_period": {
+                    "type": "string",
+                    "example": "2020"
+                },
+                "team": {
+                    "description": "nullable",
+                    "type": "integer",
+                    "example": 964
+                },
+                "title": {
+                    "type": "string",
+                    "example": "Russian champion"
+                },
+                "undetected": {
+                    "description": "nullable, не распознанный текст на событие/команду",
+                    "type": "string",
+                    "example": "null"
                 }
             }
         }

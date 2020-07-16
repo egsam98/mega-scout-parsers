@@ -182,6 +182,31 @@ definitions:
         example: 0
         type: integer
     type: object
+  models.Trophy:
+    properties:
+      event:
+        description: nullable
+        example: "null"
+        type: string
+      event_url:
+        description: nullable
+        example: "null"
+        type: string
+      season_period:
+        example: "2020"
+        type: string
+      team:
+        description: nullable
+        example: 964
+        type: integer
+      title:
+        example: Russian champion
+        type: string
+      undetected:
+        description: nullable, не распознанный текст на событие/команду
+        example: "null"
+        type: string
+    type: object
 info:
   contact: {}
   license: {}
@@ -303,4 +328,27 @@ paths:
             $ref: '#/definitions/models.ErrorJSON'
         "408": {}
       summary: Карточка клуба
+  /trophies:
+    get:
+      parameters:
+      - description: URL игрока/тренера
+        in: query
+        name: person_url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Trophy'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorJSON'
+        "408": {}
+      summary: Трофеи игрока/тренера
 swagger: "2.0"
