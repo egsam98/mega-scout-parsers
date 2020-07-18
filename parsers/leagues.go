@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
+	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/slices"
-	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,12 +15,7 @@ const BaseUrl = "https://transfermarkt.com"
 
 func Leagues(countryId, seasonPeriod int) (leagues []models.League, _ error) {
 	url := fmt.Sprintf("%s/wettbewerbe/national/wettbewerbe/%d?saison_id=%d", BaseUrl, countryId, seasonPeriod)
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %s", url, err)
-	}
-	defer res.Body.Close()
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	doc, err := utils.FetchHtml(url)
 	if err != nil {
 		return nil, err
 	}

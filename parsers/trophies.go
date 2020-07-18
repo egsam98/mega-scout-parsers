@@ -3,7 +3,7 @@ package parsers
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
-	"net/http"
+	"github.com/egsam98/MegaScout/utils"
 	"regexp"
 	"strconv"
 	"strings"
@@ -11,14 +11,7 @@ import (
 
 func Trophies(personUrl string) (trophies []models.Trophy, _ error) {
 	url := strings.ReplaceAll(personUrl, "profil", "erfolge")
-	res, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-
-	defer res.Body.Close()
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	doc, err := utils.FetchHtml(url)
 	if err != nil {
 		return nil, err
 	}

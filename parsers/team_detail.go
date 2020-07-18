@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
+	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/message"
-	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -14,14 +14,7 @@ import (
 func TeamDetail(teamUrl string) (*models.TeamDetail, error) {
 	foundedFuture := founded(teamUrl)
 
-	res, err := http.Get(teamUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	defer res.Body.Close()
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	doc, err := utils.FetchHtml(teamUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -61,17 +54,9 @@ func founded(teamUrl string) chan message.Message {
 	future := make(chan message.Message, 1)
 	url := strings.ReplaceAll(teamUrl, "startseite", "datenfakten")
 	go func() {
-		res, err := http.Get(url)
+		doc, err := utils.FetchHtml(url)
 		if err != nil {
 			future <- message.Error(err)
-			return
-		}
-
-		defer res.Body.Close()
-
-		doc, err := goquery.NewDocumentFromReader(res.Body)
-		if err != nil {
-			future <- message.Ok(err)
 			return
 		}
 

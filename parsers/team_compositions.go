@@ -3,17 +3,12 @@ package parsers
 import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
-	"net/http"
+	"github.com/egsam98/MegaScout/utils"
 	"strconv"
 )
 
 func TeamCompositions(leagueUrl string) (teams []models.Team, _ error) {
-	res, err := http.Get(leagueUrl)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	doc, err := utils.FetchHtml(leagueUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -52,12 +47,7 @@ func TeamCompositions(leagueUrl string) (teams []models.Team, _ error) {
 }
 
 func processPlayers(clubUrl string) (players []models.Player, _ error) {
-	res, err := http.Get(clubUrl)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	doc, err := utils.FetchHtml(clubUrl)
 	if err != nil {
 		return nil, err
 	}

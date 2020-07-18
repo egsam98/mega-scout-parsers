@@ -36,6 +36,65 @@ definitions:
         example: https://transfermarkt.com/premier-liga/startseite/wettbewerb/RU1
         type: string
     type: object
+  models.LineUp:
+    properties:
+      coach_id:
+        example: 77618
+        type: integer
+      coach_url:
+        example: https://transfermarkt.com/viktor-vinogradov/profil/trainer/77618
+        type: string
+      formation:
+        description: nullable
+        example: 4-5-1
+        type: string
+      players:
+        items:
+          $ref: '#/definitions/models.PlayerLineUp'
+        type: array
+      team:
+        example: 15170
+        type: integer
+    type: object
+  models.Match:
+    properties:
+      away_team:
+        example: 964
+        type: integer
+      away_team_score:
+        description: nullable
+        example: 2
+        type: integer
+      competition_url:
+        example: https://transfermarkt.com/russian-cup/startseite/pokalwettbewerb/RUP/saison_id/1993
+        type: string
+      event_datetime:
+        example: 28-05-1993 12:00
+        type: string
+      home_team:
+        example: 15170
+        type: integer
+      home_team_score:
+        description: nullable
+        example: 5
+        type: integer
+      id:
+        example: 3381127
+        type: integer
+      line_ups:
+        items:
+          $ref: '#/definitions/models.LineUp'
+        type: array
+      round:
+        example: Third Round
+        type: string
+      url:
+        example: https://www.transfermarkt.com/smena-saturn-st-petersburg_zenit-st-petersburg/index/spielbericht/3381127
+        type: string
+      venue:
+        example: Akademia Zenit
+        type: string
+    type: object
   models.Player:
     properties:
       id:
@@ -108,6 +167,23 @@ definitions:
         items:
           $ref: '#/definitions/models.Transfer'
         type: array
+    type: object
+  models.PlayerLineUp:
+    properties:
+      id:
+        example: 751484
+        type: integer
+      number:
+        description: nullable
+        example: 1
+        type: integer
+      type:
+        description: 0 - основной состав, 1 - в запасе
+        enum:
+        - 0
+        - 1
+        example: 0
+        type: integer
     type: object
   models.Season:
     properties:
@@ -251,6 +327,29 @@ paths:
             $ref: '#/definitions/models.ErrorJSON'
         "408": {}
       summary: Список лиг страны за определенный сезон
+  /matches:
+    get:
+      parameters:
+      - description: URL клуба
+        in: query
+        name: team_url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Match'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorJSON'
+        "408": {}
+      summary: Список матчей клуба
   /player_detail:
     get:
       parameters:

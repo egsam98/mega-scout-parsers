@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
+	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/slices"
 	strings2 "github.com/egsam98/MegaScout/utils/strings"
-	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,12 +14,7 @@ import (
 )
 
 func PlayerDetail(playerUrl string) (*models.PlayerDetail, error) {
-	res, err := http.Get(playerUrl)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	doc, err := utils.FetchHtml(playerUrl)
 	if err != nil {
 		return nil, err
 	}

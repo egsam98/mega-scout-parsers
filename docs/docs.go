@@ -86,6 +86,41 @@ var doc = `{
                 }
             }
         },
+        "/matches": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Список матчей клуба",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL клуба",
+                        "name": "team_url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Match"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorJSON"
+                        }
+                    },
+                    "408": {}
+                }
+            }
+        },
         "/player_detail": {
             "get": {
                 "produces": [
@@ -293,6 +328,87 @@ var doc = `{
                 }
             }
         },
+        "models.LineUp": {
+            "type": "object",
+            "properties": {
+                "coach_id": {
+                    "type": "integer",
+                    "example": 77618
+                },
+                "coach_url": {
+                    "type": "string",
+                    "example": "https://transfermarkt.com/viktor-vinogradov/profil/trainer/77618"
+                },
+                "formation": {
+                    "description": "nullable",
+                    "type": "string",
+                    "example": "4-5-1"
+                },
+                "players": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.PlayerLineUp"
+                    }
+                },
+                "team": {
+                    "type": "integer",
+                    "example": 15170
+                }
+            }
+        },
+        "models.Match": {
+            "type": "object",
+            "properties": {
+                "away_team": {
+                    "type": "integer",
+                    "example": 964
+                },
+                "away_team_score": {
+                    "description": "nullable",
+                    "type": "integer",
+                    "example": 2
+                },
+                "competition_url": {
+                    "type": "string",
+                    "example": "https://transfermarkt.com/russian-cup/startseite/pokalwettbewerb/RUP/saison_id/1993"
+                },
+                "event_datetime": {
+                    "type": "string",
+                    "example": "28-05-1993 12:00"
+                },
+                "home_team": {
+                    "type": "integer",
+                    "example": 15170
+                },
+                "home_team_score": {
+                    "description": "nullable",
+                    "type": "integer",
+                    "example": 5
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 3381127
+                },
+                "line_ups": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.LineUp"
+                    }
+                },
+                "round": {
+                    "type": "string",
+                    "example": "Third Round"
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://www.transfermarkt.com/smena-saturn-st-petersburg_zenit-st-petersburg/index/spielbericht/3381127"
+                },
+                "venue": {
+                    "type": "string",
+                    "example": "Akademia Zenit"
+                }
+            }
+        },
         "models.Player": {
             "type": "object",
             "properties": {
@@ -388,6 +504,29 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/models.Transfer"
                     }
+                }
+            }
+        },
+        "models.PlayerLineUp": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 751484
+                },
+                "number": {
+                    "description": "nullable",
+                    "type": "integer",
+                    "example": 1
+                },
+                "type": {
+                    "description": "0 - основной состав, 1 - в запасе",
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ],
+                    "example": 0
                 }
             }
         },
