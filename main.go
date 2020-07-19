@@ -35,6 +35,7 @@ func main() {
 	r.GET("/trophies", TrophiesController)
 	r.GET("/matches", MatchesController)
 	r.GET("/match_events", MatchEventsController)
+	r.GET("/coaches", CoachesController)
 
 	initSwagger(r)
 

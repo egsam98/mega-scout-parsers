@@ -25,6 +25,41 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/coaches": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "2 тренера матча (в доработке)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL матча",
+                        "name": "match_url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Coach"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorJSON"
+                        }
+                    },
+                    "408": {}
+                }
+            }
+        },
         "/countries": {
             "get": {
                 "produces": [
@@ -377,6 +412,19 @@ var doc = `{
                         "card"
                     ],
                     "example": "goal"
+                }
+            }
+        },
+        "models.Coach": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer",
+                    "example": 61477
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://transfermarkt.com/bruno-lage/profil/trainer/61477"
                 }
             }
         },

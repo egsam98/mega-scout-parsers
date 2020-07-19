@@ -53,6 +53,15 @@ definitions:
         example: goal
         type: string
     type: object
+  models.Coach:
+    properties:
+      id:
+        example: 61477
+        type: integer
+      url:
+        example: https://transfermarkt.com/bruno-lage/profil/trainer/61477
+        type: string
+    type: object
   models.Country:
     properties:
       code:
@@ -341,6 +350,29 @@ info:
   contact: {}
   license: {}
 paths:
+  /coaches:
+    get:
+      parameters:
+      - description: URL матча
+        in: query
+        name: match_url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Coach'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorJSON'
+        "408": {}
+      summary: 2 тренера матча (в доработке)
   /countries:
     get:
       produces:
