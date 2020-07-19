@@ -86,6 +86,41 @@ var doc = `{
                 }
             }
         },
+        "/match_events": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Список событий матча",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL матча",
+                        "name": "match_url",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.AllMatchEventFields"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorJSON"
+                        }
+                    },
+                    "408": {}
+                }
+            }
+        },
         "/matches": {
             "get": {
                 "produces": [
@@ -276,6 +311,75 @@ var doc = `{
         }
     },
     "definitions": {
+        "models.AllMatchEventFields": {
+            "type": "object",
+            "properties": {
+                "assist_info": {
+                    "description": "goal, nullable",
+                    "type": "string",
+                    "example": "Pass"
+                },
+                "assist_player": {
+                    "description": "goal, nullable",
+                    "type": "integer",
+                    "example": 242567
+                },
+                "goal_info": {
+                    "description": "goal",
+                    "type": "string",
+                    "example": "Right-footed shot"
+                },
+                "goal_player": {
+                    "description": "goal",
+                    "type": "integer",
+                    "example": 121434
+                },
+                "info": {
+                    "description": "card",
+                    "type": "string",
+                    "example": "Yellow card, Foul"
+                },
+                "minute": {
+                    "description": "substitution",
+                    "type": "integer",
+                    "example": 71
+                },
+                "player": {
+                    "description": "card",
+                    "type": "integer",
+                    "example": 123456
+                },
+                "player_in": {
+                    "description": "substitution",
+                    "type": "integer",
+                    "example": 125624
+                },
+                "player_out": {
+                    "description": "substitution",
+                    "type": "integer",
+                    "example": 956421
+                },
+                "success": {
+                    "description": "penalty",
+                    "type": "boolean",
+                    "example": true
+                },
+                "team": {
+                    "type": "integer",
+                    "example": 2741
+                },
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "goal",
+                        "penalty",
+                        "substitution",
+                        "card"
+                    ],
+                    "example": "goal"
+                }
+            }
+        },
         "models.Country": {
             "type": "object",
             "properties": {

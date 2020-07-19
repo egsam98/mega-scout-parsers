@@ -1,4 +1,58 @@
 definitions:
+  models.AllMatchEventFields:
+    properties:
+      assist_info:
+        description: goal, nullable
+        example: Pass
+        type: string
+      assist_player:
+        description: goal, nullable
+        example: 242567
+        type: integer
+      goal_info:
+        description: goal
+        example: Right-footed shot
+        type: string
+      goal_player:
+        description: goal
+        example: 121434
+        type: integer
+      info:
+        description: card
+        example: Yellow card, Foul
+        type: string
+      minute:
+        description: substitution
+        example: 71
+        type: integer
+      player:
+        description: card
+        example: 123456
+        type: integer
+      player_in:
+        description: substitution
+        example: 125624
+        type: integer
+      player_out:
+        description: substitution
+        example: 956421
+        type: integer
+      success:
+        description: penalty
+        example: true
+        type: boolean
+      team:
+        example: 2741
+        type: integer
+      type:
+        enum:
+        - goal
+        - penalty
+        - substitution
+        - card
+        example: goal
+        type: string
+    type: object
   models.Country:
     properties:
       code:
@@ -327,6 +381,29 @@ paths:
             $ref: '#/definitions/models.ErrorJSON'
         "408": {}
       summary: Список лиг страны за определенный сезон
+  /match_events:
+    get:
+      parameters:
+      - description: URL матча
+        in: query
+        name: match_url
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AllMatchEventFields'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorJSON'
+        "408": {}
+      summary: Список событий матча
   /matches:
     get:
       parameters:
