@@ -7,7 +7,7 @@ import (
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/message"
 	"github.com/egsam98/MegaScout/utils/slices"
-	"strconv"
+	strings2 "github.com/egsam98/MegaScout/utils/strings"
 	"strings"
 )
 
@@ -44,10 +44,7 @@ func processCoach(url string, ch chan<- message.Message) {
 		ch <- message.Error(err)
 		return
 	}
-	id, err := strconv.Atoi(slices.String_Last(strings.Split(url, "/")))
-	if err != nil {
-		panic(err)
-	}
+	id := strings2.ToInt(slices.String_Last(strings.Split(url, "/")), false)
 	ch <- message.Ok(models.Coach{
 		Id:  id,
 		Url: url,

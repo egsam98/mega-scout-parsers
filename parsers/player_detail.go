@@ -181,9 +181,6 @@ func team(a *goquery.Selection) *int {
 	if !exists {
 		return nil
 	}
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		panic(err)
-	}
+	id := strings2.ToInt(idStr, false)
 	return &id
 }

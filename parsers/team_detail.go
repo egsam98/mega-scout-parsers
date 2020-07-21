@@ -6,7 +6,7 @@ import (
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/message"
-	"strconv"
+	strings2 "github.com/egsam98/MegaScout/utils/strings"
 	"strings"
 	"time"
 )
@@ -22,10 +22,6 @@ func TeamDetail(teamUrl string) (*models.TeamDetail, error) {
 	countryIdStr, exists := doc.Find("#land_select_breadcrumb > option").First().Attr("value")
 	if !exists {
 		panic(fmt.Errorf("%s: country is absent", teamUrl))
-	}
-	countryId, err := strconv.Atoi(countryIdStr)
-	if err != nil {
-		panic(fmt.Errorf("%s: %v", teamUrl, err))
 	}
 
 	var logo *string
@@ -44,7 +40,7 @@ func TeamDetail(teamUrl string) (*models.TeamDetail, error) {
 	}
 
 	return &models.TeamDetail{
-		Country: countryId,
+		Country: strings2.ToInt(countryIdStr, false),
 		Logo:    logo,
 		Founded: founded,
 	}, nil

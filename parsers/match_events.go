@@ -5,8 +5,8 @@ import (
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/slices"
+	strings2 "github.com/egsam98/MegaScout/utils/strings"
 	"regexp"
-	"strconv"
 	"strings"
 )
 
@@ -47,10 +47,7 @@ func processGoals(lis *goquery.Selection, matchEventChan chan interface{}) {
 
 		goalAndAssistPlayer := [2]*int{}
 		action.Find("a").Each(func(i int, a *goquery.Selection) {
-			id, err := strconv.Atoi(a.AttrOr("id", ""))
-			if err != nil {
-				panic(err)
-			}
+			id := strings2.ToInt(a.AttrOr("id", ""), false)
 			goalAndAssistPlayer[i] = &id
 		})
 
@@ -68,10 +65,7 @@ func processSubstitutions(lis *goquery.Selection, matchEventChan chan interface{
 	lis.Each(func(_ int, li *goquery.Selection) {
 		ids := utils.NewSet()
 		li.Find(".sb-aktion-aktion a").Each(func(_ int, a *goquery.Selection) {
-			id, err := strconv.Atoi(a.AttrOr("id", ""))
-			if err != nil {
-				panic(err)
-			}
+			id := strings2.ToInt(a.AttrOr("id", ""), false)
 			ids.Add(id)
 		})
 
@@ -87,11 +81,7 @@ func processSubstitutions(lis *goquery.Selection, matchEventChan chan interface{
 func processCards(lis *goquery.Selection, matchEventChan chan interface{}) {
 	lis.Each(func(_ int, li *goquery.Selection) {
 		action := li.Find(".sb-aktion-aktion")
-		player, err := strconv.Atoi(action.Find("a").First().AttrOr("id", ""))
-		if err != nil {
-			panic(err)
-		}
-
+		player := strings2.ToInt(action.Find("a").First().AttrOr("id", ""), false)
 		info := slices.String_Last(strings.Split(action.Text(), "\t"))
 		info = strings.Trim(regexp.MustCompile(`\d.`).ReplaceAllString(info, ""), "\n\t ")
 
@@ -105,10 +95,7 @@ func processCards(lis *goquery.Selection, matchEventChan chan interface{}) {
 
 func processPenalty(lis *goquery.Selection, matchEventChan chan interface{}) {
 	lis.Each(func(_ int, li *goquery.Selection) {
-		player, err := strconv.Atoi(li.Find(".sb-aktion-aktion > a").First().AttrOr("id", ""))
-		if err != nil {
-			panic(err)
-		}
+		player := strings2.ToInt(li.Find(".sb-aktion-aktion > a").First().AttrOr("id", ""), false)
 		matchEventChan <- models.NewPenalty(
 			li,
 			player,
