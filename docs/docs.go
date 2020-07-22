@@ -223,6 +223,47 @@ var doc = `{
                 }
             }
         },
+        "/player_stats": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Статистика игрока за каждый матч",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "URL игрока",
+                        "name": "player_url",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "период сезона (год)",
+                        "name": "season_period",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.PlayerStats"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorJSON"
+                        }
+                    },
+                    "408": {}
+                }
+            }
+        },
         "/seasons": {
             "get": {
                 "produces": [
@@ -679,6 +720,44 @@ var doc = `{
                         1
                     ],
                     "example": 0
+                }
+            }
+        },
+        "models.PlayerStats": {
+            "type": "object",
+            "properties": {
+                "assists": {
+                    "type": "integer"
+                },
+                "goals": {
+                    "type": "integer"
+                },
+                "match_id": {
+                    "type": "integer"
+                },
+                "minutes_played": {
+                    "type": "integer"
+                },
+                "own_goals": {
+                    "type": "integer"
+                },
+                "red_cards": {
+                    "type": "integer"
+                },
+                "season_period": {
+                    "type": "integer"
+                },
+                "second_yellow_cards": {
+                    "type": "integer"
+                },
+                "substitution_off": {
+                    "type": "integer"
+                },
+                "substitution_on": {
+                    "type": "integer"
+                },
+                "yellow_cards": {
+                    "type": "integer"
                 }
             }
         },

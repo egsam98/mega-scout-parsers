@@ -248,6 +248,31 @@ definitions:
         example: 0
         type: integer
     type: object
+  models.PlayerStats:
+    properties:
+      assists:
+        type: integer
+      goals:
+        type: integer
+      match_id:
+        type: integer
+      minutes_played:
+        type: integer
+      own_goals:
+        type: integer
+      red_cards:
+        type: integer
+      season_period:
+        type: integer
+      second_yellow_cards:
+        type: integer
+      substitution_off:
+        type: integer
+      substitution_on:
+        type: integer
+      yellow_cards:
+        type: integer
+    type: object
   models.Season:
     properties:
       period:
@@ -480,6 +505,33 @@ paths:
             $ref: '#/definitions/models.ErrorJSON'
         "408": {}
       summary: Карточка игрока
+  /player_stats:
+    get:
+      parameters:
+      - description: URL игрока
+        in: query
+        name: player_url
+        required: true
+        type: string
+      - description: период сезона (год)
+        in: query
+        name: season_period
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.PlayerStats'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.ErrorJSON'
+        "408": {}
+      summary: Статистика игрока за каждый матч
   /seasons:
     get:
       produces:

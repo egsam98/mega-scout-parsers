@@ -27,3 +27,17 @@ type PlayerLineUp struct {
 	Number *int `json:"number" example:"1"`           // nullable
 	Type   int  `json:"type" enums:"0,1" example:"0"` // 0 - основной состав, 1 - в запасе
 }
+
+type PlayerStats struct {
+	MatchId           int  `json:"match_id"`
+	SeasonPeriod      int  `json:"season_period"`
+	Goals             int  `json:"goals"`
+	Assists           int  `json:"assists"`
+	OwnGoals          int  `json:"own_goals"`
+	YellowCards       int  `json:"yellow_cards"`
+	SecondYellowCards int  `json:"second_yellow_cards"`
+	RedCards          int  `json:"red_cards"`
+	SubstitutionOn    *int `json:"substitution_on"`
+	SubstitutionOff   *int `json:"substitution_off"`
+	MinutesPlayed     int  `json:"minutes_played"`
+}
