@@ -13,7 +13,7 @@ func FetchHtml(url string) (*goquery.Document, error) {
 	}
 
 	if res.StatusCode == 500 {
-		return nil, &errors.TransfermarktError{}
+		return nil, errors.NewTransfermarktError(url)
 	}
 
 	defer res.Body.Close()
