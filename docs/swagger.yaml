@@ -77,7 +77,11 @@ definitions:
     type: object
   models.ErrorJSON:
     properties:
+      code:
+        type: integer
       error:
+        type: string
+      message:
         type: string
     type: object
   models.League:

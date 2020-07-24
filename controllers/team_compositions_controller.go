@@ -11,7 +11,7 @@ import (
 // @Param league_url query string true "URL соревнования"
 // @Produce json
 // @Success 200 {array} models.Team
-// @Failure 400 {object} middlewares.
+// @Failure 400 {object} models.ErrorJSON
 // @Failure 408
 func TeamCompositionsController(c *gin.Context) {
 	leagueUrl := c.Query("league_url")

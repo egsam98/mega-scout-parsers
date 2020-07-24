@@ -15,11 +15,11 @@ type Match struct {
 }
 
 type LineUp struct {
-	Team      int     `json:"team" example:"15170"`
-	Formation *string `json:"formation" example:"4-5-1"` // nullable
-	CoachId   int     `json:"coach_id" example:"77618"`
-	CoachUrl  string  `json:"coach_url" example:"https://transfermarkt.com/viktor-vinogradov/profil/trainer/77618"`
-	Players   []PlayerLineUp
+	Team      int            `json:"team" example:"15170"`
+	Formation *string        `json:"formation" example:"4-5-1"` // nullable
+	CoachId   int            `json:"coach_id" example:"77618"`
+	CoachUrl  string         `json:"coach_url" example:"https://transfermarkt.com/viktor-vinogradov/profil/trainer/77618"`
+	Players   []PlayerLineUp `json:"players"`
 }
 
 type PlayerLineUp struct {
