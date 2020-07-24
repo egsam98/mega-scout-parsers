@@ -101,7 +101,10 @@ func Countries() (utils.Set, error) {
 			continue
 		}
 		res, _ := driver.ExecuteScript("return arguments[0].textContent", []interface{}{elem})
-		name, code := _ISOCode(res.(string))
+		name, code, err := _ISOCode(res.(string))
+		if err != nil {
+			return nil, err
+		}
 		countries.Add(models.Country{
 			Id:   id,
 			Name: name,
@@ -128,14 +131,14 @@ func initSelenium() (*selenium.Service, selenium.WebDriver, error) {
 	return service, driver, err
 }
 
-func _ISOCode(countryName string) (string, string) {
+func _ISOCode(countryName string) (string, string, error) {
 	country, err := gountry.FindCountryByName(countryName)
 	if err != nil {
 		data, exists := exceptionalCountries[countryName]
 		if !exists {
-			panic(fmt.Errorf("Country %s's not found", countryName))
+			return "", "", fmt.Errorf("Country %s's not found", countryName)
 		}
-		return data[0], data[1]
+		return data[0], data[1], nil
 	}
-	return countryName, country.Alpha2
+	return countryName, country.Alpha2, nil
 }

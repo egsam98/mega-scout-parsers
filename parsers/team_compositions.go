@@ -4,7 +4,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
-	"github.com/egsam98/MegaScout/utils/strings"
+	"strconv"
 )
 
 func TeamCompositions(leagueUrl string) (teams []models.Team, _ error) {
@@ -28,8 +28,9 @@ func TeamCompositions(leagueUrl string) (teams []models.Team, _ error) {
 				return
 			}
 
+			id, _ := strconv.Atoi(a.AttrOr("id", ""))
 			teamChan <- models.Team{
-				Id:      strings.ToInt(a.AttrOr("id", ""), true),
+				Id:      id,
 				Url:     BaseUrl + url,
 				Title:   a.Text(),
 				Players: players,
@@ -56,8 +57,9 @@ func processPlayers(clubUrl string) (players []models.Player, _ error) {
 		}
 		tds := tr.Children()
 		a := tds.Find(".hauptlink a").First()
+		id, _ := strconv.Atoi(a.AttrOr("id", ""))
 		players = append(players, models.Player{
-			Id:  strings.ToInt(a.AttrOr("id", ""), true),
+			Id:  id,
 			Url: BaseUrl + a.AttrOr("href", ""),
 		})
 	})

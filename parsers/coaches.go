@@ -7,7 +7,7 @@ import (
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/message"
 	"github.com/egsam98/MegaScout/utils/slices"
-	strings2 "github.com/egsam98/MegaScout/utils/strings"
+	"strconv"
 	"strings"
 )
 
@@ -18,13 +18,19 @@ func Coaches(matchUrl string) ([]models.Coach, error) {
 	}
 
 	ch := make(chan message.Message)
-	doc.Find(".ersatzbank").Each(func(_ int, e *goquery.Selection) {
+	var innerError error
+	doc.Find(".ersatzbank").EachWithBreak(func(_ int, e *goquery.Selection) bool {
 		href, exists := e.Find("a").Last().Attr("href")
 		if !exists {
-			panic(errors.New("coach href doesn't exist"))
+			innerError = errors.New("coach href doesn't exist")
+			return false
 		}
 		go processCoach(BaseUrl+href, ch)
+		return true
 	})
+	if innerError != nil {
+		return nil, innerError
+	}
 
 	coaches := make([]models.Coach, 2)
 	for i := 0; i < 2; i++ {
@@ -39,12 +45,18 @@ func Coaches(matchUrl string) ([]models.Coach, error) {
 }
 
 func processCoach(url string, ch chan<- message.Message) {
-	_, err := utils.FetchHtml(url)
+	_, fetchHtmlErr := utils.FetchHtml(url)
+	if fetchHtmlErr != nil {
+		ch <- message.Error(fetchHtmlErr)
+		return
+	}
+
+	id, err := strconv.Atoi(slices.String_Last(strings.Split(url, "/")))
 	if err != nil {
 		ch <- message.Error(err)
 		return
 	}
-	id := strings2.ToInt(slices.String_Last(strings.Split(url, "/")), false)
+
 	ch <- message.Ok(models.Coach{
 		Id:  id,
 		Url: url,

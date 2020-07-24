@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/parsers"
+	"github.com/egsam98/MegaScout/utils/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,7 +24,7 @@ type Zopa struct {
 func MatchEventsController(c *gin.Context) {
 	matchUrl := c.Query("match_url")
 	if matchUrl == "" {
-		c.JSON(400, models.NewErrorJSON("match_url is not provided"))
+		c.Error(errors.NewClientError(400, "match_url is not provided"))
 		return
 	}
 

@@ -5,9 +5,9 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
+	"github.com/egsam98/MegaScout/utils/errors"
 	"github.com/egsam98/MegaScout/utils/message"
 	"github.com/egsam98/MegaScout/utils/slices"
-	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -47,7 +47,8 @@ func processSeasons(teamUrl string, season models.Season, matchesChan chan messa
 		if a.AttrOr("title", "") != "Match report" {
 			href, exists := a.Attr("href")
 			if !exists {
-				panic(err)
+				innerError = err
+				return false
 			}
 			matchUrl := "https://www.transfermarkt.com" + href
 			match, err := matchInfo(matchUrl)
@@ -68,9 +69,9 @@ func processSeasons(teamUrl string, season models.Season, matchesChan chan messa
 }
 
 func matchInfo(matchUrl string) (*models.Match, error) {
-	doc, err := utils.FetchHtml(matchUrl)
-	if err != nil {
-		return nil, err
+	doc, fetchHtmlErr := utils.FetchHtml(matchUrl)
+	if fetchHtmlErr != nil {
+		return nil, fetchHtmlErr
 	}
 
 	text := doc.Find("div.ergebnis-wrap .sb-endstand").Text()
@@ -80,7 +81,7 @@ func matchInfo(matchUrl string) (*models.Match, error) {
 		if result != "" && result != "-" {
 			score, err := strconv.Atoi(result)
 			if err != nil {
-				panic(fmt.Errorf("%s: %v", matchUrl, err))
+				return nil, fmt.Errorf("%s: %v", matchUrl, err)
 			}
 			scores[i] = &score
 		}
@@ -94,22 +95,26 @@ func matchInfo(matchUrl string) (*models.Match, error) {
 		formattedDatetime := strings.Trim(datum.Find("a").First().Text(), "\n\t ") + " " + formattedTime
 		datetime, err = changeFormat(formattedDatetime)
 		if err != nil {
-			panic(fmt.Errorf("%s: %v", matchUrl, err))
+			return nil, fmt.Errorf("%s: %v", matchUrl, err)
 		}
 	}
 
 	teams := make([]int, 0)
 	lineUps := make([]models.LineUp, 0)
-	doc.Find(".box > .large-6.columns").Each(func(_ int, s *goquery.Selection) {
+
+	var innerErr error
+	doc.Find(".box > .large-6.columns").EachWithBreak(func(_ int, s *goquery.Selection) bool {
 		team, err := strconv.Atoi(s.Find("nobr > a").First().AttrOr("id", ""))
 		if err != nil {
-			panic(fmt.Errorf("%s: %v", matchUrl, err))
+			innerErr = fmt.Errorf("%s: %v", matchUrl, err)
+			return false
 		}
 		teams = append(teams, team)
 		coachUrl, _ := s.Find("a").Last().Attr("href")
 		coachId, err := strconv.Atoi(slices.String_Last(strings.Split(coachUrl, "/")))
 		if err != nil {
-			panic(fmt.Errorf("%s: %v", matchUrl, err))
+			innerErr = fmt.Errorf("%s: %v", matchUrl, err)
+			return false
 		}
 
 		var formation *string
@@ -123,23 +128,28 @@ func matchInfo(matchUrl string) (*models.Match, error) {
 			CoachId:   coachId,
 			CoachUrl:  BaseUrl + coachUrl,
 		})
+		return true
 	})
+
+	if innerErr != nil {
+		return nil, innerErr
+	}
 
 	lineUpsUrl, exists := doc.Find("#line-ups > a").First().Attr("href")
 	if exists && len(lineUps) != 0 {
-		if err := processLineUps(matchUrl, BaseUrl+lineUpsUrl, teams, &lineUps); err != nil {
+		if err := processLineUps(matchUrl, BaseUrl+lineUpsUrl, &lineUps); err != nil {
 			return nil, err
 		}
 	}
 
 	id, err := strconv.Atoi(slices.String_Last(strings.Split(matchUrl, "/")))
 	if err != nil {
-		panic(fmt.Errorf("%s: %v", matchUrl, err))
+		return nil, fmt.Errorf("%s: %v", matchUrl, err)
 	}
 
 	competitionHref, exists := doc.Find(".spielername-profil a").First().Attr("href")
 	if !exists {
-		panic(fmt.Errorf("%s: competition href is absent", matchUrl))
+		return nil, fmt.Errorf("%s: competition href is absent", matchUrl)
 	}
 
 	return &models.Match{
@@ -157,23 +167,25 @@ func matchInfo(matchUrl string) (*models.Match, error) {
 	}, nil
 }
 
-func processLineUps(matchUrl, lineUpsUrl string, teams []int, lineUps *[]models.LineUp) error {
+func processLineUps(matchUrl, lineUpsUrl string, lineUps *[]models.LineUp) error {
 	doc, err := utils.FetchHtml(lineUpsUrl)
 	if err != nil {
-		if _, ok := err.(*url.Error); ok {
+		if _, ok := err.(*errors.TransfermarktError); ok {
 			return nil
 		}
 		return err
 	}
 
-	doc.Find(".row.sb-formation").Slice(0, -1).Each(func(typeLineUp int, e *goquery.Selection) {
-		e.Find(".columns").Each(func(i int, col *goquery.Selection) {
+	var innerErr error
+	doc.Find(".row.sb-formation").Slice(0, -1).EachWithBreak(func(typeLineUp int, e *goquery.Selection) bool {
+		e.Find(".columns").EachWithBreak(func(i int, col *goquery.Selection) bool {
 			playerLineUps := make([]models.PlayerLineUp, 0)
-			col.Find("table.items > tbody > tr").Each(func(_ int, tr *goquery.Selection) {
+			col.Find("table.items > tbody > tr").EachWithBreak(func(_ int, tr *goquery.Selection) bool {
 				tds := tr.Find("td")
 				id, err := strconv.Atoi(tds.Eq(1).Find("a").First().AttrOr("id", ""))
 				if err != nil {
-					panic(fmt.Errorf("%s: %v", matchUrl, err))
+					innerErr = fmt.Errorf("%s: %v", matchUrl, err)
+					return false
 				}
 
 				var number *int
@@ -181,7 +193,8 @@ func processLineUps(matchUrl, lineUpsUrl string, teams []int, lineUps *[]models.
 				if numberStr != "-" {
 					result, err := strconv.Atoi(numberStr)
 					if err != nil {
-						panic(fmt.Errorf("%s: %v", matchUrl, err))
+						innerErr = fmt.Errorf("%s: %v", matchUrl, err)
+						return false
 					}
 					number = &result
 				}
@@ -191,12 +204,23 @@ func processLineUps(matchUrl, lineUpsUrl string, teams []int, lineUps *[]models.
 					Number: number,
 					Type:   typeLineUp,
 				})
+				return true
 			})
 			(*lineUps)[i].Players = append((*lineUps)[i].Players, playerLineUps...)
+
+			if innerErr != nil {
+				return false
+			}
+			return true
 		})
+
+		if innerErr != nil {
+			return false
+		}
+		return true
 	})
 
-	return nil
+	return innerErr
 }
 
 func changeFormat(formattedDatetime string) (string, error) {

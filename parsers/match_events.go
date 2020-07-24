@@ -4,9 +4,10 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
+	"github.com/egsam98/MegaScout/utils/message"
 	"github.com/egsam98/MegaScout/utils/slices"
-	strings2 "github.com/egsam98/MegaScout/utils/strings"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -16,7 +17,7 @@ func MatchEvents(matchUrl string) (matchEvents []interface{}, _ error) {
 		return nil, err
 	}
 
-	matchEventChan := make(chan interface{})
+	matchEventChan := make(chan message.Message)
 
 	tables := doc.Find("[class='row']")
 	goals := findTable(tables, "Goals")
@@ -30,12 +31,16 @@ func MatchEvents(matchUrl string) (matchEvents []interface{}, _ error) {
 	go processPenalty(penalty, matchEventChan)
 
 	for i := 0; i < goals.Length()+substitutions.Length()+cards.Length()+penalty.Length(); i++ {
-		matchEvents = append(matchEvents, <-matchEventChan)
+		msg := <-matchEventChan
+		if msg.IsError() {
+			return nil, msg.Error
+		}
+		matchEvents = append(matchEvents, msg.Data)
 	}
 	return matchEvents, nil
 }
 
-func processGoals(lis *goquery.Selection, matchEventChan chan interface{}) {
+func processGoals(lis *goquery.Selection, matchEventChan chan message.Message) {
 	lis.Each(func(_ int, li *goquery.Selection) {
 		action := li.Find(".sb-aktion-aktion")
 		goalAndAssist := [2]*string{}
@@ -46,61 +51,91 @@ func processGoals(lis *goquery.Selection, matchEventChan chan interface{}) {
 		}
 
 		goalAndAssistPlayer := [2]*int{}
-		action.Find("a").Each(func(i int, a *goquery.Selection) {
-			id := strings2.ToInt(a.AttrOr("id", ""), false)
+		var innerErr error
+		action.Find("a").EachWithBreak(func(i int, a *goquery.Selection) bool {
+			id, err := strconv.Atoi(a.AttrOr("id", ""))
+			if err != nil {
+				innerErr = err
+				return false
+			}
 			goalAndAssistPlayer[i] = &id
+			return true
 		})
 
-		matchEventChan <- models.NewGoal(
+		if innerErr != nil {
+			matchEventChan <- message.Error(innerErr)
+			return
+		}
+
+		matchEventChan <- message.Ok(models.NewGoal(
 			li,
 			*goalAndAssistPlayer[0],
 			*goalAndAssist[0],
 			goalAndAssistPlayer[1],
 			goalAndAssist[1],
-		)
+		))
 	})
 }
 
-func processSubstitutions(lis *goquery.Selection, matchEventChan chan interface{}) {
+func processSubstitutions(lis *goquery.Selection, matchEventChan chan message.Message) {
 	lis.Each(func(_ int, li *goquery.Selection) {
 		ids := utils.NewSet()
-		li.Find(".sb-aktion-aktion a").Each(func(_ int, a *goquery.Selection) {
-			id := strings2.ToInt(a.AttrOr("id", ""), false)
+		var innerErr error
+		li.Find(".sb-aktion-aktion a").EachWithBreak(func(_ int, a *goquery.Selection) bool {
+			id, err := strconv.Atoi(a.AttrOr("id", ""))
+			if err != nil {
+				innerErr = err
+				return false
+			}
 			ids.Add(id)
+			return true
 		})
 
+		if innerErr != nil {
+			matchEventChan <- message.Error(innerErr)
+			return
+		}
+
 		slice := ids.Slice()
-		matchEventChan <- models.NewSubstitution(
+		matchEventChan <- message.Ok(models.NewSubstitution(
 			li,
 			slice[0].(int),
 			slice[1].(int),
-		)
+		))
 	})
 }
 
-func processCards(lis *goquery.Selection, matchEventChan chan interface{}) {
+func processCards(lis *goquery.Selection, matchEventChan chan message.Message) {
 	lis.Each(func(_ int, li *goquery.Selection) {
 		action := li.Find(".sb-aktion-aktion")
-		player := strings2.ToInt(action.Find("a").First().AttrOr("id", ""), false)
+		player, err := strconv.Atoi(action.Find("a").First().AttrOr("id", ""))
+		if err != nil {
+			matchEventChan <- message.Error(err)
+			return
+		}
+
 		info := slices.String_Last(strings.Split(action.Text(), "\t"))
 		info = strings.Trim(regexp.MustCompile(`\d.`).ReplaceAllString(info, ""), "\n\t ")
-
-		matchEventChan <- models.NewCard(
+		matchEventChan <- message.Ok(models.NewCard(
 			li,
 			player,
 			info,
-		)
+		))
 	})
 }
 
-func processPenalty(lis *goquery.Selection, matchEventChan chan interface{}) {
+func processPenalty(lis *goquery.Selection, matchEventChan chan message.Message) {
 	lis.Each(func(_ int, li *goquery.Selection) {
-		player := strings2.ToInt(li.Find(".sb-aktion-aktion > a").First().AttrOr("id", ""), false)
-		matchEventChan <- models.NewPenalty(
+		player, err := strconv.Atoi(li.Find(".sb-aktion-aktion > a").First().AttrOr("id", ""))
+		if err != nil {
+			matchEventChan <- message.Error(err)
+			return
+		}
+		matchEventChan <- message.Ok(models.NewPenalty(
 			li,
 			player,
 			li.Find(".sb-11m-tor").Length() > 0,
-		)
+		))
 	})
 }
 

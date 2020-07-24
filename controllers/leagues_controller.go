@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/parsers"
+	"github.com/egsam98/MegaScout/utils/errors"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -18,12 +18,12 @@ import (
 func LeaguesController(c *gin.Context) {
 	countryId, err := strconv.Atoi(c.Query("country"))
 	if err != nil {
-		c.JSON(400, models.NewErrorJSON("Invalid country. Must be integer."))
+		c.Error(errors.NewClientError(400, "Invalid country. Must be integer."))
 		return
 	}
 	seasonPeriod, err := strconv.Atoi(c.Query("season_period"))
 	if err != nil {
-		c.JSON(400, models.NewErrorJSON("Invalid season_period. Must be integer."))
+		c.Error(errors.NewClientError(400, "Invalid season_period. Must be integer."))
 		return
 	}
 	leagues, err := parsers.Leagues(countryId, seasonPeriod)

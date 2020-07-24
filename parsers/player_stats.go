@@ -6,7 +6,6 @@ import (
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/message"
 	"github.com/egsam98/MegaScout/utils/pointers"
-	strings2 "github.com/egsam98/MegaScout/utils/strings"
 	"strconv"
 	"strings"
 )
@@ -46,6 +45,13 @@ func processStats(url string, seasonPeriod int, statsChan chan<- message.Message
 		return
 	}
 
+	defer func() {
+		obj := recover()
+		if err, ok := obj.(error); ok {
+			statsChan <- message.Error(err)
+		}
+	}()
+
 	stats := make([]models.PlayerStats, 0)
 	boxes := doc.Find(".large-12.columns > .box")
 	boxes.Slice(1, boxes.Length()).Each(func(_ int, box *goquery.Selection) {
@@ -53,27 +59,39 @@ func processStats(url string, seasonPeriod int, statsChan chan<- message.Message
 			tds := tr.Find("td")
 			matchId, err := strconv.Atoi(tds.Eq(-11).Find("a").AttrOr("id", ""))
 			if err == nil {
+				minutesPlayed, err := parseGameMinutes(tds.Eq(-1).Text())
+				if err != nil {
+					panic(err)
+				}
+
 				var subOn *int
 				var subOff *int
-				if result := tds.Eq(-2).Text(); result != "" {
-					subOff = pointers.NewInt(parseGameMinutes(result))
+				if result, err := parseGameMinutes(tds.Eq(-2).Text()); err == nil {
+					subOff = pointers.NewInt(result)
 				}
-				if result := tds.Eq(-3).Text(); result != "" {
-					subOn = pointers.NewInt(parseGameMinutes(result))
+				if result, err := parseGameMinutes(tds.Eq(-3).Text()); err == nil {
+					subOn = pointers.NewInt(result)
 				}
+
+				goals, _ := strconv.Atoi(tds.Eq(-9).Text())
+				assists, _ := strconv.Atoi(tds.Eq(-8).Text())
+				ownGoals, _ := strconv.Atoi(tds.Eq(-7).Text())
+				yellowCards, _ := strconv.Atoi(tds.Eq(-6).Text())
+				secondYellowCards, _ := strconv.Atoi(tds.Eq(-5).Text())
+				redCards, _ := strconv.Atoi(tds.Eq(-4).Text())
 
 				stats = append(stats, models.PlayerStats{
 					MatchId:           matchId,
 					SeasonPeriod:      seasonPeriod,
-					Goals:             strings2.ToInt(tds.Eq(-9).Text(), true),
-					Assists:           strings2.ToInt(tds.Eq(-8).Text(), true),
-					OwnGoals:          strings2.ToInt(tds.Eq(-7).Text(), true),
-					YellowCards:       strings2.ToInt(tds.Eq(-6).Text(), true),
-					SecondYellowCards: strings2.ToInt(tds.Eq(-5).Text(), true),
-					RedCards:          strings2.ToInt(tds.Eq(-4).Text(), true),
+					Goals:             goals,
+					Assists:           assists,
+					OwnGoals:          ownGoals,
+					YellowCards:       yellowCards,
+					SecondYellowCards: secondYellowCards,
+					RedCards:          redCards,
 					SubstitutionOn:    subOn,
 					SubstitutionOff:   subOff,
-					MinutesPlayed:     parseGameMinutes(tds.Eq(-1).Text()),
+					MinutesPlayed:     minutesPlayed,
 				})
 			}
 		})
@@ -81,6 +99,6 @@ func processStats(url string, seasonPeriod int, statsChan chan<- message.Message
 	statsChan <- message.Ok(stats)
 }
 
-func parseGameMinutes(minutes string) int {
-	return strings2.ToInt(strings.Trim(minutes, "'\u00a0"), false)
+func parseGameMinutes(minutes string) (int, error) {
+	return strconv.Atoi(strings.Trim(minutes, "'\u00a0"))
 }

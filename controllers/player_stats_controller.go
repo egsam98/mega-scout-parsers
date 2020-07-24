@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/parsers"
+	"github.com/egsam98/MegaScout/utils/errors"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -18,7 +18,7 @@ import (
 func PlayerStatsController(c *gin.Context) {
 	playerUrl := c.Query("player_url")
 	if playerUrl == "" {
-		c.JSON(400, "player_url is not provided")
+		c.Error(errors.NewClientError(400, "player_url is not provided"))
 		return
 	}
 
@@ -27,7 +27,7 @@ func PlayerStatsController(c *gin.Context) {
 	if seasonPeriodStr != "" {
 		_seasonPeriod, err := strconv.Atoi(seasonPeriodStr)
 		if err != nil {
-			c.JSON(400, models.NewErrorJSON("season_period must be year"))
+			c.Error(errors.NewClientError(400, "season_period must be year"))
 			return
 		}
 		seasonPeriod = &_seasonPeriod
@@ -35,7 +35,7 @@ func PlayerStatsController(c *gin.Context) {
 
 	data, err := parsers.PlayerStats(playerUrl, seasonPeriod)
 	if err != nil {
-		c.Status(408)
+		c.Error(err)
 		return
 	}
 	c.JSON(200, data)

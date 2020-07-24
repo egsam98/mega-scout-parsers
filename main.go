@@ -3,6 +3,7 @@ package main
 import (
 	. "github.com/egsam98/MegaScout/controllers"
 	"github.com/egsam98/MegaScout/docs"
+	"github.com/egsam98/MegaScout/middlewares"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	swaggerFiles "github.com/swaggo/files"
@@ -26,6 +27,7 @@ func main() {
 	_ = godotenv.Load()
 
 	r := gin.Default()
+	r.Use(middlewares.JSONErrorHandler())
 	r.GET("/countries", CountriesController)
 	r.GET("/seasons", SeasonsController)
 	r.GET("/leagues", LeaguesController)

@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/parsers"
+	"github.com/egsam98/MegaScout/utils/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +16,7 @@ import (
 func MatchesController(c *gin.Context) {
 	teamUrl := c.Query("team_url")
 	if teamUrl == "" {
-		c.JSON(400, models.NewErrorJSON("team_url is not provided"))
+		c.Error(errors.NewClientError(400, "team_url is not provided"))
 		return
 	}
 

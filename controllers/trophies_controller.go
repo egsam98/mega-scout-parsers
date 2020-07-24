@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/parsers"
+	"github.com/egsam98/MegaScout/utils/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +16,7 @@ import (
 func TrophiesController(c *gin.Context) {
 	personUrl := c.Query("person_url")
 	if personUrl == "" {
-		c.JSON(400, models.NewErrorJSON("person_url (player or coach) is not provided"))
+		c.Error(errors.NewClientError(400, "person_url (player or coach) is not provided"))
 		return
 	}
 

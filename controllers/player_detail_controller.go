@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/parsers"
+	"github.com/egsam98/MegaScout/utils/errors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +16,7 @@ import (
 func PlayerDetailController(c *gin.Context) {
 	playerUrl := c.Query("url")
 	if playerUrl == "" {
-		c.JSON(400, models.NewErrorJSON("url is not provided"))
+		c.Error(errors.NewClientError(400, "url is not provided"))
 		return
 	}
 	data, err := parsers.PlayerDetail(playerUrl)
