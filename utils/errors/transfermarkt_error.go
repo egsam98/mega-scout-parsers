@@ -9,5 +9,5 @@ func NewTransfermarktError(url string) *TransfermarktError {
 }
 
 func (te *TransfermarktError) Error() string {
-	return "Invalid trasfermarkt.com page: " + te.url
+	return "Invalid trasfermarkt.com page: " + te.Url
 }
