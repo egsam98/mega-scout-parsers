@@ -30,7 +30,7 @@ func MatchEventsController(c *gin.Context) {
 
 	data, err := parsers.MatchEvents(matchUrl)
 	if err != nil {
-		c.Status(408)
+		c.Error(err)
 		return
 	}
 

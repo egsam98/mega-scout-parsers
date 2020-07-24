@@ -12,7 +12,8 @@ import (
 func CountriesController(c *gin.Context) {
 	data, err := parsers.Countries()
 	if err != nil {
-		panic(err)
+		c.Error(err)
+		return
 	}
 	c.Header("Content-Type", "application/json")
 	c.JSON(200, data.Slice())

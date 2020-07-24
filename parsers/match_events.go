@@ -116,11 +116,12 @@ func processCards(lis *goquery.Selection, matchEventChan chan message.Message) {
 
 		info := slices.String_Last(strings.Split(action.Text(), "\t"))
 		info = strings.Trim(regexp.MustCompile(`\d.`).ReplaceAllString(info, ""), "\n\t ")
-		matchEventChan <- message.Ok(models.NewCard(
-			li,
-			player,
-			info,
-		))
+		card, err := models.NewCard(li, player, info)
+		if err != nil {
+			matchEventChan <- message.Error(err)
+			return
+		}
+		matchEventChan <- message.Ok(card)
 	})
 }
 

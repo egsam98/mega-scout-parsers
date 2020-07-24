@@ -27,6 +27,7 @@ func Matches(teamUrl string) (matches []models.Match, _ error) {
 		if msg.IsError() {
 			return nil, msg.Error
 		}
+		//fmt.Println(len(msg.Data.([]models.Match)))
 		matches = append(matches, msg.Data.([]models.Match)...)
 	}
 	return matches, nil
@@ -44,20 +45,21 @@ func processSeasons(teamUrl string, season models.Season, matchesChan chan messa
 	matches := make([]models.Match, 0)
 	var innerError error
 	doc.Find("a.ergebnis-link").EachWithBreak(func(_ int, a *goquery.Selection) bool {
-		if a.AttrOr("title", "") != "Match report" {
-			href, exists := a.Attr("href")
-			if !exists {
-				innerError = err
-				return false
-			}
-			matchUrl := "https://www.transfermarkt.com" + href
-			match, err := matchInfo(matchUrl)
-			if err != nil {
-				innerError = err
-				return false
-			}
-			matches = append(matches, *match)
+		if title, _ := a.Attr("title"); title != "Match report" {
+			return true
 		}
+		href, exists := a.Attr("href")
+		if !exists {
+			innerError = err
+			return false
+		}
+		matchUrl := "https://www.transfermarkt.com" + href
+		match, err := matchInfo(matchUrl)
+		if err != nil {
+			innerError = err
+			return false
+		}
+		matches = append(matches, *match)
 		return true
 	})
 

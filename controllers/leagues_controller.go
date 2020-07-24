@@ -28,7 +28,7 @@ func LeaguesController(c *gin.Context) {
 	}
 	leagues, err := parsers.Leagues(countryId, seasonPeriod)
 	if err != nil {
-		c.Status(408)
+		c.Error(err)
 		return
 	}
 	c.JSON(200, leagues)

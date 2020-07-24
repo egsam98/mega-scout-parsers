@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/egsam98/MegaScout/parsers"
 	"github.com/egsam98/MegaScout/utils/errors"
 	"github.com/gin-gonic/gin"
@@ -22,9 +23,10 @@ func MatchesController(c *gin.Context) {
 
 	data, err := parsers.Matches(teamUrl)
 	if err != nil {
-		c.Status(408)
+		c.Error(err)
 		return
 	}
 
+	fmt.Println(len(data))
 	c.JSON(200, data)
 }

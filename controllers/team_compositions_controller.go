@@ -21,7 +21,7 @@ func TeamCompositionsController(c *gin.Context) {
 	}
 	data, err := parsers.TeamCompositions(leagueUrl)
 	if err != nil {
-		c.Status(408)
+		c.Error(err)
 		return
 	}
 	c.JSON(200, data)

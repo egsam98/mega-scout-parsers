@@ -22,7 +22,7 @@ func CoachesController(c *gin.Context) {
 
 	data, err := parsers.Coaches(matchUrl)
 	if err != nil {
-		c.Status(408)
+		c.Error(err)
 		return
 	}
 

@@ -22,7 +22,7 @@ func TrophiesController(c *gin.Context) {
 
 	data, err := parsers.Trophies(personUrl)
 	if err != nil {
-		c.Status(408)
+		c.Error(err)
 		return
 	}
 

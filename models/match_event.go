@@ -84,35 +84,43 @@ type Card struct {
 	Info   string `json:"info" example:"Yellow card, Foul"` // card
 }
 
-func NewCard(li *goquery.Selection, player int, info string) Card {
-	return Card{
+func NewCard(li *goquery.Selection, player int, info string) (*Card, error) {
+	team, err := team(li)
+	if err != nil {
+		return nil, err
+	}
+	minute, err := minute(li)
+	if err != nil {
+		return nil, err
+	}
+	return &Card{
 		MatchEvent: MatchEvent{
 			Type: "card",
-			Team: team(li),
+			Team: team,
 		},
-		Minute: minute(li),
+		Minute: minute,
 		Player: player,
 		Info:   info,
-	}
+	}, nil
 }
 
-func minute(li *goquery.Selection) int {
+func minute(li *goquery.Selection) (int, error) {
 	style := li.Find(".sb-sprite-uhr-klein").First().AttrOr("style", "")
 	xY := [2]int{}
 	for i, pxStr := range strings.Split(style, " ")[1:] {
 		px, err := strconv.Atoi(strings.Trim(pxStr, "px;"))
 		if err != nil {
-			panic(err)
+			return 0, nil
 		}
 		xY[i] = px / -36
 	}
-	return 10*xY[1] + xY[0] + 1
+	return 10*xY[1] + xY[0] + 1, nil
 }
 
-func team(node *goquery.Selection) int {
+func team(node *goquery.Selection) (int, error) {
 	result, err := strconv.Atoi(node.Find(".sb-aktion-wappen > a").First().AttrOr("id", ""))
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
-	return result
+	return result, nil
 }
