@@ -27,18 +27,26 @@ type Goal struct {
 	AssistInfo   *string `json:"assist_info" example:"Pass"`            // goal, nullable
 }
 
-func NewGoal(li *goquery.Selection, goalPlayer int, goalInfo string, assistPlayer *int, assistInfo *string) Goal {
-	return Goal{
+func NewGoal(li *goquery.Selection, goalPlayer int, goalInfo string, assistPlayer *int, assistInfo *string) (*Goal, error) {
+	team, err := team(li)
+	if err != nil {
+		return nil, err
+	}
+	minute, err := minute(li)
+	if err != nil {
+		return nil, err
+	}
+	return &Goal{
 		MatchEvent: MatchEvent{
 			Type: "goal",
-			Team: team(li),
+			Team: team,
 		},
-		Minute:       minute(li),
+		Minute:       minute,
 		GoalPlayer:   goalPlayer,
 		GoalInfo:     goalInfo,
 		AssistPlayer: assistPlayer,
 		AssistInfo:   assistInfo,
-	}
+	}, err
 }
 
 type Penalty struct {
@@ -47,15 +55,19 @@ type Penalty struct {
 	Success bool `json:"success" example:"true"`  // penalty
 }
 
-func NewPenalty(li *goquery.Selection, player int, success bool) Penalty {
-	return Penalty{
+func NewPenalty(li *goquery.Selection, player int, success bool) (*Penalty, error) {
+	team, err := team(li)
+	if err != nil {
+		return nil, err
+	}
+	return &Penalty{
 		MatchEvent: MatchEvent{
 			Type: "penalty",
-			Team: team(li),
+			Team: team,
 		},
 		Player:  player,
 		Success: success,
-	}
+	}, nil
 }
 
 type Substitution struct {
@@ -65,16 +77,24 @@ type Substitution struct {
 	PlayerOut int `json:"player_out" example:"956421"` // substitution
 }
 
-func NewSubstitution(li *goquery.Selection, playerIn, playerOut int) Substitution {
-	return Substitution{
+func NewSubstitution(li *goquery.Selection, playerIn, playerOut int) (*Substitution, error) {
+	team, err := team(li)
+	if err != nil {
+		return nil, err
+	}
+	minute, err := minute(li)
+	if err != nil {
+		return nil, err
+	}
+	return &Substitution{
 		MatchEvent: MatchEvent{
 			Type: "substitution",
-			Team: team(li),
+			Team: team,
 		},
-		Minute:    minute(li),
+		Minute:    minute,
 		PlayerIn:  playerIn,
 		PlayerOut: playerOut,
-	}
+	}, nil
 }
 
 type Card struct {

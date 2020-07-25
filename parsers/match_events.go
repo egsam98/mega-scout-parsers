@@ -67,13 +67,18 @@ func processGoals(lis *goquery.Selection, matchEventChan chan message.Message) {
 			return
 		}
 
-		matchEventChan <- message.Ok(models.NewGoal(
+		goal, err := models.NewGoal(
 			li,
 			*goalAndAssistPlayer[0],
 			*goalAndAssist[0],
 			goalAndAssistPlayer[1],
 			goalAndAssist[1],
-		))
+		)
+		if err != nil {
+			matchEventChan <- message.Error(err)
+			return
+		}
+		matchEventChan <- message.Ok(goal)
 	})
 }
 
@@ -97,11 +102,16 @@ func processSubstitutions(lis *goquery.Selection, matchEventChan chan message.Me
 		}
 
 		slice := ids.Slice()
-		matchEventChan <- message.Ok(models.NewSubstitution(
+		sub, err := models.NewSubstitution(
 			li,
 			slice[0].(int),
 			slice[1].(int),
-		))
+		)
+		if err != nil {
+			matchEventChan <- message.Error(err)
+			return
+		}
+		matchEventChan <- message.Ok(sub)
 	})
 }
 
@@ -132,11 +142,16 @@ func processPenalty(lis *goquery.Selection, matchEventChan chan message.Message)
 			matchEventChan <- message.Error(err)
 			return
 		}
-		matchEventChan <- message.Ok(models.NewPenalty(
+		penalty, err := models.NewPenalty(
 			li,
 			player,
 			li.Find(".sb-11m-tor").Length() > 0,
-		))
+		)
+		if err != nil {
+			matchEventChan <- message.Error(err)
+			return
+		}
+		matchEventChan <- message.Ok(penalty)
 	})
 }
 
