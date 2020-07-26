@@ -25,3 +25,15 @@ func FetchHtml(url string) (*goquery.Document, error) {
 
 	return doc, nil
 }
+
+func RetryFetchHtml(url string, times int) (doc *goquery.Document, err error) {
+	for i := 0; i < times; i++ {
+		if doc, err = FetchHtml(url); err == nil {
+			return doc, nil
+		}
+		if _, ok := err.(*errors.TransfermarktError); ok {
+			return nil, err
+		}
+	}
+	return nil, err
+}

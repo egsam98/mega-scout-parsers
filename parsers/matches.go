@@ -16,64 +16,72 @@ import (
 
 var seasons = Seasons()
 
-func Matches(teamUrl string) (matches []models.Match, _ error) {
-	matchesChan := make(chan message.Message)
+func Matches(teamUrl string) ([]models.Match, error) {
+	messageChan := make(chan message.Message)
 	for _, season := range seasons {
-		go processSeasons(teamUrl, season, matchesChan)
+		go fetchMatchUrls(teamUrl, season, messageChan)
 	}
 
-	for i := 0; i < len(seasons); i++ {
-		msg := <-matchesChan
+	matchUrls := make([]string, 0, len(seasons))
+	for range seasons {
+		msg := <-messageChan
 		if msg.IsError() {
 			return nil, msg.Error
 		}
-		//fmt.Println(len(msg.Data.([]models.Match)))
-		matches = append(matches, msg.Data.([]models.Match)...)
+		matchUrls = append(matchUrls, msg.Data.([]string)...)
 	}
+
+	for _, url := range matchUrls {
+		go matchInfo(url, messageChan)
+	}
+
+	matches := make([]models.Match, 0, len(matchUrls))
+	for range matchUrls {
+		msg := <-messageChan
+		if msg.IsError() {
+			return nil, msg.Error
+		}
+		matches = append(matches, msg.Data.(models.Match))
+	}
+
 	return matches, nil
 }
 
-func processSeasons(teamUrl string, season models.Season, matchesChan chan message.Message) {
+func fetchMatchUrls(teamUrl string, season models.Season, matchUrlsChan chan<- message.Message) {
 	matchUrl := strings.ReplaceAll(teamUrl, "startseite", "spielplan") + "/saison_id/" +
 		strconv.Itoa(season.Period)
-	doc, err := utils.FetchHtml(matchUrl)
+	doc, err := utils.RetryFetchHtml(matchUrl, 10)
 	if err != nil {
-		matchesChan <- message.Error(err)
+		matchUrlsChan <- message.Error(err)
 		return
 	}
 
-	matches := make([]models.Match, 0)
 	var innerError error
+	matchUrls := make([]string, 0)
 	doc.Find("a.ergebnis-link").EachWithBreak(func(_ int, a *goquery.Selection) bool {
-		if title, _ := a.Attr("title"); title != "Match report" {
-			return true
+		if title, _ := a.Attr("title"); title == "Match report" {
+			href, exists := a.Attr("href")
+			if !exists {
+				innerError = fmt.Errorf("href's absent")
+				return false
+			}
+			matchUrls = append(matchUrls, "https://www.transfermarkt.com"+href)
 		}
-		href, exists := a.Attr("href")
-		if !exists {
-			innerError = err
-			return false
-		}
-		matchUrl := "https://www.transfermarkt.com" + href
-		match, err := matchInfo(matchUrl)
-		if err != nil {
-			innerError = err
-			return false
-		}
-		matches = append(matches, *match)
 		return true
 	})
 
 	if innerError != nil {
-		matchesChan <- message.Error(innerError)
+		matchUrlsChan <- message.Error(innerError)
 		return
 	}
-	matchesChan <- message.Ok(matches)
+	matchUrlsChan <- message.Ok(matchUrls)
 }
 
-func matchInfo(matchUrl string) (*models.Match, error) {
-	doc, fetchHtmlErr := utils.FetchHtml(matchUrl)
-	if fetchHtmlErr != nil {
-		return nil, fetchHtmlErr
+func matchInfo(matchUrl string, matchChan chan<- message.Message) {
+	doc, err := utils.RetryFetchHtml(matchUrl, 10)
+	if err != nil {
+		matchChan <- message.Error(err)
+		return
 	}
 
 	text := doc.Find("div.ergebnis-wrap .sb-endstand").Text()
@@ -83,7 +91,8 @@ func matchInfo(matchUrl string) (*models.Match, error) {
 		if result != "" && result != "-" {
 			score, err := strconv.Atoi(result)
 			if err != nil {
-				return nil, fmt.Errorf("%s: %v", matchUrl, err)
+				matchChan <- message.Error(fmt.Errorf("%s: %v", matchUrl, err))
+				return
 			}
 			scores[i] = &score
 		}
@@ -97,7 +106,8 @@ func matchInfo(matchUrl string) (*models.Match, error) {
 		formattedDatetime := strings.Trim(datum.Find("a").First().Text(), "\n\t ") + " " + formattedTime
 		datetime, err = changeFormat(formattedDatetime)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %v", matchUrl, err)
+			matchChan <- message.Error(fmt.Errorf("%s: %v", matchUrl, err))
+			return
 		}
 	}
 
@@ -134,27 +144,31 @@ func matchInfo(matchUrl string) (*models.Match, error) {
 	})
 
 	if innerErr != nil {
-		return nil, innerErr
+		matchChan <- message.Error(innerErr)
+		return
 	}
 
 	lineUpsUrl, exists := doc.Find("#line-ups > a").First().Attr("href")
 	if exists && len(lineUps) != 0 {
 		if err := processLineUps(matchUrl, BaseUrl+lineUpsUrl, &lineUps); err != nil {
-			return nil, err
+			matchChan <- message.Error(err)
+			return
 		}
 	}
 
 	id, err := strconv.Atoi(slices.String_Last(strings.Split(matchUrl, "/")))
 	if err != nil {
-		return nil, fmt.Errorf("%s: %v", matchUrl, err)
+		matchChan <- message.Error(fmt.Errorf("%s: %v", matchUrl, err))
+		return
 	}
 
 	competitionHref, exists := doc.Find(".spielername-profil a").First().Attr("href")
 	if !exists {
-		return nil, fmt.Errorf("%s: competition href is absent", matchUrl)
+		matchChan <- message.Error(fmt.Errorf("%s: competition href is absent", matchUrl))
+		return
 	}
 
-	return &models.Match{
+	matchChan <- message.Ok(models.Match{
 		Id:             id,
 		Url:            matchUrl,
 		CompetitionUrl: BaseUrl + competitionHref,
@@ -166,11 +180,11 @@ func matchInfo(matchUrl string) (*models.Match, error) {
 		AwayTeamScore:  scores[1],
 		Venue:          doc.Find("span.hide-for-small a").Text(),
 		LineUps:        lineUps,
-	}, nil
+	})
 }
 
-func processLineUps(matchUrl, lineUpsUrl string, lineUps *[]models.LineUp) error {
-	doc, err := utils.FetchHtml(lineUpsUrl)
+func processLineUps(matchUrl, lineUpsUrl string, lineUps *[]models.LineUp) (err error) {
+	doc, err := utils.RetryFetchHtml(lineUpsUrl, 10)
 	if err != nil {
 		if _, ok := err.(*errors.TransfermarktError); ok {
 			return nil
@@ -229,6 +243,9 @@ func changeFormat(formattedDatetime string) (string, error) {
 	result, err := time.Parse("Mon, 1/2/06 3:04 PM", formattedDatetime)
 	if err != nil {
 		return "", err
+	}
+	if result.Year() > time.Now().Year() {
+		result = result.AddDate(-100, 0, 0) // TODO: на 2020 год
 	}
 	return result.Format("02-01-2006 15:04"), nil
 }
