@@ -18,7 +18,7 @@ func PlayerStats(playerUrl string, seasonPeriod *int) ([]models.PlayerStats, err
 	if seasonPeriod != nil {
 		seasonPeriods = []int{*seasonPeriod}
 	} else {
-		for _, season := range seasons {
+		for _, season := range Seasons() {
 			seasonPeriods = append(seasonPeriods, season.Period)
 		}
 	}

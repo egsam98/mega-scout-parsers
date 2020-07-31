@@ -551,11 +551,15 @@ paths:
   /team_compositions:
     get:
       parameters:
-      - description: URL соревнования
+      - description: URL лиги
         in: query
         name: league_url
         required: true
         type: string
+      - description: период сезона (год). По умолч. последний период
+        in: query
+        name: season_period
+        type: integer
       produces:
       - application/json
       responses:

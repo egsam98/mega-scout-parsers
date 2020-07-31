@@ -14,9 +14,8 @@ import (
 	"time"
 )
 
-var seasons = Seasons()
-
 func Matches(teamUrl string) ([]models.Match, error) {
+	seasons := Seasons()
 	messageChan := make(chan message.Message)
 	for _, season := range seasons {
 		go fetchMatchUrls(teamUrl, season, messageChan)

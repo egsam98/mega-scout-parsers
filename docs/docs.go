@@ -292,10 +292,16 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "URL соревнования",
+                        "description": "URL лиги",
                         "name": "league_url",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "период сезона (год). По умолч. последний период",
+                        "name": "season_period",
+                        "in": "query"
                     }
                 ],
                 "responses": {

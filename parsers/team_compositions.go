@@ -7,8 +7,8 @@ import (
 	"strconv"
 )
 
-func TeamCompositions(leagueUrl string) (teams []models.Team, _ error) {
-	doc, err := utils.FetchHtml(leagueUrl)
+func TeamCompositions(leagueUrl string, seasonPeriod int) (teams []models.Team, _ error) {
+	doc, err := utils.FetchHtml(leagueUrl + "/saison_id/" + strconv.Itoa(seasonPeriod))
 	if err != nil {
 		return nil, err
 	}

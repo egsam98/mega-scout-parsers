@@ -22,3 +22,8 @@ func Seasons() []models.Season {
 	}
 	return seasons
 }
+
+func LatestSeason() models.Season {
+	seasons := Seasons()
+	return seasons[len(seasons)-1]
+}
