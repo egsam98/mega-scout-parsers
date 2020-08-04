@@ -169,6 +169,12 @@ var doc = `{
                         "name": "team_url",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "период сезона (год)",
+                        "name": "season_period",
+                        "in": "query"
                     }
                 ],
                 "responses": {

@@ -473,6 +473,10 @@ paths:
         name: team_url
         required: true
         type: string
+      - description: период сезона (год)
+        in: query
+        name: season_period
+        type: integer
       produces:
       - application/json
       responses:

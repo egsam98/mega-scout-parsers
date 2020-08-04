@@ -14,15 +14,23 @@ import (
 	"time"
 )
 
-func Matches(teamUrl string) ([]models.Match, error) {
-	seasons := Seasons()
-	messageChan := make(chan message.Message)
-	for _, season := range seasons {
-		go fetchMatchUrls(teamUrl, season, messageChan)
+func Matches(teamUrl string, seasonPeriod *int) ([]models.Match, error) {
+	var seasonPeriods []int
+	if seasonPeriod != nil {
+		seasonPeriods = []int{*seasonPeriod}
+	} else {
+		for _, season := range Seasons() {
+			seasonPeriods = append(seasonPeriods, season.Period)
+		}
 	}
 
-	matchUrls := make([]string, 0, len(seasons))
-	for range seasons {
+	messageChan := make(chan message.Message)
+	for _, period := range seasonPeriods {
+		go fetchMatchUrls(teamUrl, period, messageChan)
+	}
+
+	matchUrls := make([]string, 0, len(seasonPeriods))
+	for range seasonPeriods {
 		msg := <-messageChan
 		if msg.IsError() {
 			return nil, msg.Error
@@ -46,9 +54,9 @@ func Matches(teamUrl string) ([]models.Match, error) {
 	return matches, nil
 }
 
-func fetchMatchUrls(teamUrl string, season models.Season, matchUrlsChan chan<- message.Message) {
+func fetchMatchUrls(teamUrl string, seasonPeriod int, matchUrlsChan chan<- message.Message) {
 	matchUrl := strings.ReplaceAll(teamUrl, "startseite", "spielplan") + "/saison_id/" +
-		strconv.Itoa(season.Period)
+		strconv.Itoa(seasonPeriod)
 	doc, err := utils.RetryFetchHtml(matchUrl, 10)
 	if err != nil {
 		matchUrlsChan <- message.Error(err)
