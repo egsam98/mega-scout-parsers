@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-func Matches(teamUrl string, seasonPeriod *int) (_ []models.Match, err *Error) {
+func Matches(teamUrl string, seasonPeriod *int) ([]models.Match, *Error) {
 	var seasonPeriods []int
 	if seasonPeriod != nil {
 		seasonPeriods = []int{*seasonPeriod}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
-	errors2 "github.com/egsam98/MegaScout/utils/errors"
 	. "github.com/go-errors/errors"
 	"github.com/pariz/gountries"
 	"github.com/tebeka/selenium"
