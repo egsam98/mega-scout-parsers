@@ -4,15 +4,16 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
+	. "github.com/go-errors/errors"
 	"strconv"
 )
 
-func TeamCompositions(leagueUrl string, seasonPeriod int) (teams []models.Team, _ error) {
+func TeamCompositions(leagueUrl string, seasonPeriod int) (teams []models.Team, _ *Error) {
 	doc, err := utils.FetchHtml(leagueUrl + "/saison_id/" + strconv.Itoa(seasonPeriod))
 	if err != nil {
-		return nil, err
+		return nil, New(err)
 	}
-	var innerError error
+	var innerError *Error
 	count := 0
 	teamChan := make(chan models.Team)
 	doc.Find("#yw1 tbody > tr > td:nth-child(2) > a:nth-child(1)").Each(func(i int, a *goquery.Selection) {
@@ -46,10 +47,10 @@ func TeamCompositions(leagueUrl string, seasonPeriod int) (teams []models.Team, 
 	return teams, nil
 }
 
-func processPlayers(clubUrl string) (players []models.Player, _ error) {
+func processPlayers(clubUrl string) (players []models.Player, _ *Error) {
 	doc, err := utils.FetchHtml(clubUrl)
 	if err != nil {
-		return nil, err
+		return nil, New(err)
 	}
 	doc.Find("#yw1 tbody > tr").Each(func(i int, tr *goquery.Selection) {
 		if _, exists := tr.Attr("class"); !exists {

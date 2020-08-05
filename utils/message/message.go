@@ -1,15 +1,17 @@
 package message
 
+import errors2 "github.com/go-errors/errors"
+
 type Message struct {
 	Data  interface{}
-	Error error
+	Error *errors2.Error
 }
 
 func (m Message) IsError() bool {
 	return m.Error != nil
 }
 
-func Error(err error) Message {
+func Error(err *errors2.Error) Message {
 	return Message{
 		Data:  nil,
 		Error: err,

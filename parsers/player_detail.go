@@ -1,31 +1,31 @@
 package parsers
 
 import (
-	"errors"
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/slices"
 	strings2 "github.com/egsam98/MegaScout/utils/strings"
+	. "github.com/go-errors/errors"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func PlayerDetail(playerUrl string) (_ *models.PlayerDetail, err error) {
-	doc, fetchHtmlErr := utils.FetchHtml(playerUrl)
-	if fetchHtmlErr != nil {
-		return nil, fetchHtmlErr
+func PlayerDetail(playerUrl string) (*models.PlayerDetail, *Error) {
+	doc, err := utils.FetchHtml(playerUrl)
+	if err != nil {
+		return nil, New(err)
 	}
 
 	info := doc.Find("table.auflistung tr")
 
 	citizenships := make([]*int, 2)
 
-	var innerErr error
+	var innerErr *Error
 	findByTh(info, "Citizenship").Find("img").EachWithBreak(func(i int, img *goquery.Selection) bool {
+		var err *Error
 		citizenships[i], err = country(playerUrl, img)
 		if err != nil {
 			innerErr = err
@@ -40,14 +40,14 @@ func PlayerDetail(playerUrl string) (_ *models.PlayerDetail, err error) {
 	birthPlace := findByTh(info, "Place of birth")
 	imageUrl, _ := doc.Find(".dataBild > img").First().Attr("src")
 
-	currentClub, err := team(findByTh(info, "Current club").Find("a").First())
-	if err != nil {
-		return nil, err
+	currentClub, _err := team(findByTh(info, "Current club").Find("a").First())
+	if _err != nil {
+		return nil, _err
 	}
 
-	onLoanFrom, err := team(findByTh(info, "On loan from").Find("a").First())
-	if err != nil {
-		return nil, err
+	onLoanFrom, _err := team(findByTh(info, "On loan from").Find("a").First())
+	if _err != nil {
+		return nil, _err
 	}
 
 	var contractExpires *string
@@ -94,7 +94,7 @@ func PlayerDetail(playerUrl string) (_ *models.PlayerDetail, err error) {
 	contacts := findByTh(info, "Social media").Find("a").Map(func(_ int, a *goquery.Selection) string {
 		url, exists := a.Attr("href")
 		if !exists {
-			innerErr = errors.New("href attr's absent")
+			innerErr = New("href attr's absent")
 			return ""
 		}
 		return url
@@ -104,14 +104,14 @@ func PlayerDetail(playerUrl string) (_ *models.PlayerDetail, err error) {
 		return nil, innerErr
 	}
 
-	birthCountry, err := country(playerUrl, birthPlace.Find("img").First())
-	if err != nil {
-		return nil, err
+	birthCountry, _err := country(playerUrl, birthPlace.Find("img").First())
+	if _err != nil {
+		return nil, _err
 	}
 
-	transfers, err := transfers(playerUrl, doc)
-	if err != nil {
-		return nil, err
+	transfers, _err := transfers(playerUrl, doc)
+	if _err != nil {
+		return nil, _err
 	}
 
 	return &models.PlayerDetail{
@@ -142,8 +142,8 @@ func findByTh(info *goquery.Selection, header string) *goquery.Selection {
 	return tr.Find("td").First()
 }
 
-func transfers(playerUrl string, doc *goquery.Document) (transfers []models.Transfer, _ error) {
-	var innerErr error
+func transfers(playerUrl string, doc *goquery.Document) (transfers []models.Transfer, _ *Error) {
+	var innerErr *Error
 	doc.Find(".box.transferhistorie tbody > tr.zeile-transfer").EachWithBreak(func(_ int, tr *goquery.Selection) bool {
 		tds := tr.Find("td")
 
@@ -161,7 +161,7 @@ func transfers(playerUrl string, doc *goquery.Document) (transfers []models.Tran
 		if dateFormatted != "" {
 			result, err := time.Parse("Jan 2, 2006", dateFormatted)
 			if err != nil {
-				innerErr = err
+				innerErr = New(err)
 				return false
 			}
 			formatted := result.Format("02-01-2006")
@@ -180,7 +180,7 @@ func transfers(playerUrl string, doc *goquery.Document) (transfers []models.Tran
 
 		toTeam, exists := tds.Eq(6).Find("a").First().Attr("id")
 		if !exists {
-			innerErr = fmt.Errorf("%s: transfer to team is absent", playerUrl)
+			innerErr = Errorf("%s: transfer to team is absent", playerUrl)
 			return false
 		}
 
@@ -202,27 +202,27 @@ func transfers(playerUrl string, doc *goquery.Document) (transfers []models.Tran
 	return transfers, nil
 }
 
-func country(playerUrl string, img *goquery.Selection) (*int, error) {
+func country(playerUrl string, img *goquery.Selection) (*int, *Error) {
 	if img.Size() == 0 {
 		return nil, nil
 	}
 	src, exists := img.Attr("src")
 	if !exists {
-		return nil, fmt.Errorf("%s: not an image element", playerUrl)
+		return nil, Errorf("%s: not an image element", playerUrl)
 	}
 	sep := slices.String_Last(strings.Split(src, "/"))
 	id, err := strconv.Atoi(strings.Split(sep, ".")[0])
 	if err != nil {
-		return nil, fmt.Errorf("%s: %v", playerUrl, err)
+		return nil, Errorf("%s: %v", playerUrl, err)
 	}
 	return &id, nil
 }
 
-func team(a *goquery.Selection) (*int, error) {
+func team(a *goquery.Selection) (*int, *Error) {
 	idStr, exists := a.Attr("id")
 	if !exists {
 		return nil, nil
 	}
 	id, err := strconv.Atoi(idStr)
-	return &id, err
+	return &id, New(err)
 }

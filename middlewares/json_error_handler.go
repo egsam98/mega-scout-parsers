@@ -1,9 +1,11 @@
 package middlewares
 
 import (
+	"fmt"
 	"github.com/egsam98/MegaScout/models"
 	errors2 "github.com/egsam98/MegaScout/utils/errors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-errors/errors"
 	"net/http"
 )
 
@@ -38,6 +40,6 @@ func JSONErrorHandler() gin.HandlerFunc {
 			Error:   "Internal Server Error",
 			Message: err.Error(),
 		})
-		panic(err)
+		fmt.Println(err.Err.(*errors.Error).ErrorStack())
 	}
 }

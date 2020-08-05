@@ -6,15 +6,16 @@ import (
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/message"
 	"github.com/egsam98/MegaScout/utils/slices"
+	. "github.com/go-errors/errors"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-func MatchEvents(matchUrl string) (matchEvents []interface{}, _ error) {
+func MatchEvents(matchUrl string) (matchEvents []interface{}, _ *Error) {
 	doc, err := utils.FetchHtml(matchUrl)
 	if err != nil {
-		return nil, err
+		return nil, New(err)
 	}
 
 	matchEventChan := make(chan message.Message)
@@ -51,11 +52,11 @@ func processGoals(lis *goquery.Selection, matchEventChan chan message.Message) {
 		}
 
 		goalAndAssistPlayer := [2]*int{}
-		var innerErr error
+		var innerErr *Error
 		action.Find("a").EachWithBreak(func(i int, a *goquery.Selection) bool {
 			id, err := strconv.Atoi(a.AttrOr("id", ""))
 			if err != nil {
-				innerErr = err
+				innerErr = New(err)
 				return false
 			}
 			goalAndAssistPlayer[i] = &id
@@ -75,7 +76,7 @@ func processGoals(lis *goquery.Selection, matchEventChan chan message.Message) {
 			goalAndAssist[1],
 		)
 		if err != nil {
-			matchEventChan <- message.Error(err)
+			matchEventChan <- message.Error(New(err))
 			return
 		}
 		matchEventChan <- message.Ok(goal)
@@ -85,11 +86,11 @@ func processGoals(lis *goquery.Selection, matchEventChan chan message.Message) {
 func processSubstitutions(lis *goquery.Selection, matchEventChan chan message.Message) {
 	lis.Each(func(_ int, li *goquery.Selection) {
 		ids := utils.NewSet()
-		var innerErr error
+		var innerErr *Error
 		li.Find(".sb-aktion-aktion a").EachWithBreak(func(_ int, a *goquery.Selection) bool {
 			id, err := strconv.Atoi(a.AttrOr("id", ""))
 			if err != nil {
-				innerErr = err
+				innerErr = New(err)
 				return false
 			}
 			ids.Add(id)
@@ -108,7 +109,7 @@ func processSubstitutions(lis *goquery.Selection, matchEventChan chan message.Me
 			slice[1].(int),
 		)
 		if err != nil {
-			matchEventChan <- message.Error(err)
+			matchEventChan <- message.Error(New(err))
 			return
 		}
 		matchEventChan <- message.Ok(sub)
@@ -120,7 +121,7 @@ func processCards(lis *goquery.Selection, matchEventChan chan message.Message) {
 		action := li.Find(".sb-aktion-aktion")
 		player, err := strconv.Atoi(action.Find("a").First().AttrOr("id", ""))
 		if err != nil {
-			matchEventChan <- message.Error(err)
+			matchEventChan <- message.Error(New(err))
 			return
 		}
 
@@ -128,7 +129,7 @@ func processCards(lis *goquery.Selection, matchEventChan chan message.Message) {
 		info = strings.Trim(regexp.MustCompile(`\d.`).ReplaceAllString(info, ""), "\n\t ")
 		card, err := models.NewCard(li, player, info)
 		if err != nil {
-			matchEventChan <- message.Error(err)
+			matchEventChan <- message.Error(New(err))
 			return
 		}
 		matchEventChan <- message.Ok(card)
@@ -139,7 +140,7 @@ func processPenalty(lis *goquery.Selection, matchEventChan chan message.Message)
 	lis.Each(func(_ int, li *goquery.Selection) {
 		player, err := strconv.Atoi(li.Find(".sb-aktion-aktion > a").First().AttrOr("id", ""))
 		if err != nil {
-			matchEventChan <- message.Error(err)
+			matchEventChan <- message.Error(New(err))
 			return
 		}
 		penalty, err := models.NewPenalty(
@@ -148,7 +149,7 @@ func processPenalty(lis *goquery.Selection, matchEventChan chan message.Message)
 			li.Find(".sb-11m-tor").Length() > 0,
 		)
 		if err != nil {
-			matchEventChan <- message.Error(err)
+			matchEventChan <- message.Error(New(err))
 			return
 		}
 		matchEventChan <- message.Ok(penalty)
