@@ -1,13 +1,12 @@
 package parsers
 
 import (
-	"errors"
-	"fmt"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/slices"
 	strings2 "github.com/egsam98/MegaScout/utils/strings"
+	errors2 "github.com/pkg/errors"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,7 +16,7 @@ import (
 func PlayerDetail(playerUrl string) (_ *models.PlayerDetail, err error) {
 	doc, fetchHtmlErr := utils.FetchHtml(playerUrl)
 	if fetchHtmlErr != nil {
-		return nil, fetchHtmlErr
+		return nil, errors2.WithStack(fetchHtmlErr)
 	}
 
 	info := doc.Find("table.auflistung tr")
@@ -28,7 +27,7 @@ func PlayerDetail(playerUrl string) (_ *models.PlayerDetail, err error) {
 	findByTh(info, "Citizenship").Find("img").EachWithBreak(func(i int, img *goquery.Selection) bool {
 		citizenships[i], err = country(playerUrl, img)
 		if err != nil {
-			innerErr = err
+			innerErr = errors2.WithStack(err)
 			return false
 		}
 		return true
@@ -42,12 +41,12 @@ func PlayerDetail(playerUrl string) (_ *models.PlayerDetail, err error) {
 
 	currentClub, err := team(findByTh(info, "Current club").Find("a").First())
 	if err != nil {
-		return nil, err
+		return nil, errors2.WithStack(err)
 	}
 
 	onLoanFrom, err := team(findByTh(info, "On loan from").Find("a").First())
 	if err != nil {
-		return nil, err
+		return nil, errors2.WithStack(err)
 	}
 
 	var contractExpires *string
@@ -94,7 +93,7 @@ func PlayerDetail(playerUrl string) (_ *models.PlayerDetail, err error) {
 	contacts := findByTh(info, "Social media").Find("a").Map(func(_ int, a *goquery.Selection) string {
 		url, exists := a.Attr("href")
 		if !exists {
-			innerErr = errors.New("href attr's absent")
+			innerErr = errors2.New("href attr's absent")
 			return ""
 		}
 		return url
@@ -106,12 +105,12 @@ func PlayerDetail(playerUrl string) (_ *models.PlayerDetail, err error) {
 
 	birthCountry, err := country(playerUrl, birthPlace.Find("img").First())
 	if err != nil {
-		return nil, err
+		return nil, errors2.WithStack(err)
 	}
 
 	transfers, err := transfers(playerUrl, doc)
 	if err != nil {
-		return nil, err
+		return nil, errors2.WithStack(err)
 	}
 
 	return &models.PlayerDetail{
@@ -161,7 +160,7 @@ func transfers(playerUrl string, doc *goquery.Document) (transfers []models.Tran
 		if dateFormatted != "" {
 			result, err := time.Parse("Jan 2, 2006", dateFormatted)
 			if err != nil {
-				innerErr = err
+				innerErr = errors2.WithStack(err)
 				return false
 			}
 			formatted := result.Format("02-01-2006")
@@ -180,7 +179,7 @@ func transfers(playerUrl string, doc *goquery.Document) (transfers []models.Tran
 
 		toTeam, exists := tds.Eq(6).Find("a").First().Attr("id")
 		if !exists {
-			innerErr = fmt.Errorf("%s: transfer to team is absent", playerUrl)
+			innerErr = errors2.Errorf("%s: transfer to team is absent", playerUrl)
 			return false
 		}
 
@@ -208,12 +207,12 @@ func country(playerUrl string, img *goquery.Selection) (*int, error) {
 	}
 	src, exists := img.Attr("src")
 	if !exists {
-		return nil, fmt.Errorf("%s: not an image element", playerUrl)
+		return nil, errors2.Errorf("%s: not an image element", playerUrl)
 	}
 	sep := slices.String_Last(strings.Split(src, "/"))
 	id, err := strconv.Atoi(strings.Split(sep, ".")[0])
 	if err != nil {
-		return nil, fmt.Errorf("%s: %v", playerUrl, err)
+		return nil, errors2.Errorf("%s: %v", playerUrl, err)
 	}
 	return &id, nil
 }
@@ -224,5 +223,5 @@ func team(a *goquery.Selection) (*int, error) {
 		return nil, nil
 	}
 	id, err := strconv.Atoi(idStr)
-	return &id, err
+	return &id, errors2.WithStack(err)
 }

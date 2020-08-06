@@ -5,6 +5,7 @@ import (
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/pariz/gountries"
+	"github.com/pkg/errors"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/firefox"
 	"os"
@@ -76,20 +77,20 @@ func Countries() (utils.Set, error) {
 	defer driver.Quit()
 
 	if err := driver.Get("https://www.transfermarkt.com"); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	elem, err := driver.FindElement(selenium.ByID, "land_select_breadcrumb_chzn")
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	if err := elem.Click(); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	time.Sleep(1 * time.Second)
 	countries := utils.NewSet()
 	elems, err := driver.FindElements(selenium.ByCSSSelector, "#land_select_breadcrumb > option")
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	for _, elem := range elems {
 		idStr, err := elem.GetAttribute("value")

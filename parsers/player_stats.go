@@ -6,6 +6,7 @@ import (
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/message"
 	"github.com/egsam98/MegaScout/utils/pointers"
+	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 )
@@ -41,7 +42,7 @@ func PlayerStats(playerUrl string, seasonPeriod *int) ([]models.PlayerStats, err
 func processStats(url string, seasonPeriod int, statsChan chan<- message.Message) {
 	doc, err := utils.FetchHtml(url + "?saison=" + strconv.Itoa(seasonPeriod) + "&plus=1")
 	if err != nil {
-		statsChan <- message.Error(err)
+		statsChan <- message.Error(errors.WithStack(err))
 		return
 	}
 
@@ -61,7 +62,7 @@ func processStats(url string, seasonPeriod int, statsChan chan<- message.Message
 			if err == nil {
 				minutesPlayed, err := parseGameMinutes(tds.Eq(-1).Text())
 				if err != nil {
-					panic(err)
+					panic(errors.WithStack(err))
 				}
 
 				var subOn *int

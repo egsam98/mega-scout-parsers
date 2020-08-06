@@ -39,7 +39,6 @@ func JSONErrorHandler() gin.HandlerFunc {
 			Error:   "Internal Server Error",
 			Message: err.Error(),
 		})
-		fmt.Printf("%+v", err.Err)
-		fmt.Println(err.Err)
+		fmt.Printf("%+v\n", err.Err)
 	}
 }

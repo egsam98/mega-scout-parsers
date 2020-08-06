@@ -1,12 +1,12 @@
 package parsers
 
 import (
-	"errors"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/message"
 	"github.com/egsam98/MegaScout/utils/slices"
+	errors "github.com/pkg/errors"
 	"strconv"
 	"strings"
 )
@@ -14,7 +14,7 @@ import (
 func Coaches(matchUrl string) ([]models.Coach, error) {
 	doc, err := utils.FetchHtml(matchUrl)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	ch := make(chan message.Message)
@@ -22,7 +22,7 @@ func Coaches(matchUrl string) ([]models.Coach, error) {
 	doc.Find(".ersatzbank").EachWithBreak(func(_ int, e *goquery.Selection) bool {
 		href, exists := e.Find("a").Last().Attr("href")
 		if !exists {
-			innerError = errors.New("coach href doesn't exist")
+			innerError = errors.Errorf("coach href doesn't exist")
 			return false
 		}
 		go processCoach(BaseUrl+href, ch)
@@ -47,13 +47,13 @@ func Coaches(matchUrl string) ([]models.Coach, error) {
 func processCoach(url string, ch chan<- message.Message) {
 	_, fetchHtmlErr := utils.FetchHtml(url)
 	if fetchHtmlErr != nil {
-		ch <- message.Error(fetchHtmlErr)
+		ch <- message.Error(errors.WithStack(fetchHtmlErr))
 		return
 	}
 
 	id, err := strconv.Atoi(slices.String_Last(strings.Split(url, "/")))
 	if err != nil {
-		ch <- message.Error(err)
+		ch <- message.Error(errors.WithStack(err))
 		return
 	}
 

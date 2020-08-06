@@ -16,6 +16,7 @@ require (
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/pariz/gountries v0.0.0-20200430155801-1c6a393df9c7
+	github.com/pkg/errors v0.9.1
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.7

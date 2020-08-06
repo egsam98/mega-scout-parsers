@@ -6,6 +6,7 @@ import (
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/slices"
+	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,7 +18,7 @@ func Leagues(countryId, seasonPeriod int) (leagues []models.League, _ error) {
 	url := fmt.Sprintf("%s/wettbewerbe/national/wettbewerbe/%d?saison_id=%d", BaseUrl, countryId, seasonPeriod)
 	doc, err := utils.FetchHtml(url)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	tier := ""
 	doc.Find("#yw1 tbody > tr").Each(func(i int, tr *goquery.Selection) {
