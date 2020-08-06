@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
-	. "github.com/go-errors/errors"
 	"github.com/pariz/gountries"
 	"github.com/tebeka/selenium"
 	"github.com/tebeka/selenium/firefox"
@@ -68,29 +67,29 @@ var exceptionalCountries = map[string][2]string{
 	"Zanzibar":                       {"Tanzania", "TZ"},
 }
 
-func Countries() (utils.Set, *Error) {
-	service, driver, _err := initSelenium()
-	if _err != nil {
-		return nil, _err
+func Countries() (utils.Set, error) {
+	service, driver, err := initSelenium()
+	if err != nil {
+		return nil, err
 	}
 	defer service.Stop()
 	defer driver.Quit()
 
 	if err := driver.Get("https://www.transfermarkt.com"); err != nil {
-		return nil, New(err)
+		return nil, err
 	}
 	elem, err := driver.FindElement(selenium.ByID, "land_select_breadcrumb_chzn")
 	if err != nil {
-		return nil, New(err)
+		return nil, err
 	}
 	if err := elem.Click(); err != nil {
-		return nil, New(err)
+		return nil, err
 	}
 	time.Sleep(1 * time.Second)
 	countries := utils.NewSet()
 	elems, err := driver.FindElements(selenium.ByCSSSelector, "#land_select_breadcrumb > option")
 	if err != nil {
-		return nil, New(err)
+		return nil, err
 	}
 	for _, elem := range elems {
 		idStr, err := elem.GetAttribute("value")
@@ -102,9 +101,9 @@ func Countries() (utils.Set, *Error) {
 			continue
 		}
 		res, _ := driver.ExecuteScript("return arguments[0].textContent", []interface{}{elem})
-		name, code, _err := _ISOCode(res.(string))
-		if _err != nil {
-			return nil, _err
+		name, code, err := _ISOCode(res.(string))
+		if err != nil {
+			return nil, err
 		}
 		countries.Add(models.Country{
 			Id:   id,
@@ -115,11 +114,11 @@ func Countries() (utils.Set, *Error) {
 	return countries, nil
 }
 
-func initSelenium() (*selenium.Service, selenium.WebDriver, *Error) {
+func initSelenium() (*selenium.Service, selenium.WebDriver, error) {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	service, err := selenium.NewGeckoDriverService(os.Getenv("GECKODRIVER_PATH"), port+1)
 	if err != nil {
-		return nil, nil, New(err)
+		return nil, nil, errors.WithStack(err)
 	}
 
 	caps := selenium.Capabilities{"browserName": "firefox"}
@@ -129,15 +128,15 @@ func initSelenium() (*selenium.Service, selenium.WebDriver, *Error) {
 	}
 	caps.AddFirefox(firefoxCaps)
 	driver, err := selenium.NewRemote(caps, fmt.Sprintf("http://localhost:%d", port+1))
-	return service, driver, New(err)
+	return service, driver, errors.WithStack(err)
 }
 
-func _ISOCode(countryName string) (string, string, *Error) {
+func _ISOCode(countryName string) (string, string, error) {
 	country, err := gountry.FindCountryByName(countryName)
 	if err != nil {
 		data, exists := exceptionalCountries[countryName]
 		if !exists {
-			return "", "", Errorf("Country %s's not found", countryName)
+			return "", "", errors.Errorf("Country %s's not found", countryName)
 		}
 		return data[0], data[1], nil
 	}
