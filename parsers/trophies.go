@@ -4,17 +4,16 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
-	. "github.com/go-errors/errors"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-func Trophies(personUrl string) (trophies []models.Trophy, _ *Error) {
+func Trophies(personUrl string) (trophies []models.Trophy, _ error) {
 	url := strings.ReplaceAll(personUrl, "profil", "erfolge")
 	doc, err := utils.FetchHtml(url)
 	if err != nil {
-		return nil, New(err)
+		return nil, err
 	}
 
 	doc.Find("div.box").Slice(0, -1).Each(func(_ int, box *goquery.Selection) {

@@ -6,7 +6,6 @@ import (
 	"github.com/egsam98/MegaScout/models"
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/slices"
-	. "github.com/go-errors/errors"
 	"regexp"
 	"strconv"
 	"strings"
@@ -14,11 +13,11 @@ import (
 
 const BaseUrl = "https://transfermarkt.com"
 
-func Leagues(countryId, seasonPeriod int) (leagues []models.League, _ *Error) {
+func Leagues(countryId, seasonPeriod int) (leagues []models.League, _ error) {
 	url := fmt.Sprintf("%s/wettbewerbe/national/wettbewerbe/%d?saison_id=%d", BaseUrl, countryId, seasonPeriod)
 	doc, err := utils.FetchHtml(url)
 	if err != nil {
-		return nil, New(err)
+		return nil, err
 	}
 	tier := ""
 	doc.Find("#yw1 tbody > tr").Each(func(i int, tr *goquery.Selection) {

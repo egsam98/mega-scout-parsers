@@ -6,12 +6,11 @@ import (
 	"github.com/egsam98/MegaScout/utils"
 	"github.com/egsam98/MegaScout/utils/message"
 	"github.com/egsam98/MegaScout/utils/pointers"
-	. "github.com/go-errors/errors"
 	"strconv"
 	"strings"
 )
 
-func PlayerStats(playerUrl string, seasonPeriod *int) ([]models.PlayerStats, *Error) {
+func PlayerStats(playerUrl string, seasonPeriod *int) ([]models.PlayerStats, error) {
 	url := strings.ReplaceAll(playerUrl, "profil", "leistungsdatendetails")
 	statsChan := make(chan message.Message)
 
@@ -42,13 +41,13 @@ func PlayerStats(playerUrl string, seasonPeriod *int) ([]models.PlayerStats, *Er
 func processStats(url string, seasonPeriod int, statsChan chan<- message.Message) {
 	doc, err := utils.FetchHtml(url + "?saison=" + strconv.Itoa(seasonPeriod) + "&plus=1")
 	if err != nil {
-		statsChan <- message.Error(New(err))
+		statsChan <- message.Error(err)
 		return
 	}
 
 	defer func() {
 		obj := recover()
-		if err, ok := obj.(*Error); ok {
+		if err, ok := obj.(error); ok {
 			statsChan <- message.Error(err)
 		}
 	}()
@@ -100,7 +99,6 @@ func processStats(url string, seasonPeriod int, statsChan chan<- message.Message
 	statsChan <- message.Ok(stats)
 }
 
-func parseGameMinutes(minutes string) (int, *Error) {
-	id, err := strconv.Atoi(strings.Trim(minutes, "'\u00a0"))
-	return id, New(err)
+func parseGameMinutes(minutes string) (int, error) {
+	return strconv.Atoi(strings.Trim(minutes, "'\u00a0"))
 }
