@@ -485,9 +485,9 @@ var doc = `{
             "type": "object",
             "properties": {
                 "code": {
-                    "description": "В доработке",
+                    "description": "nullable",
                     "type": "string",
-                    "example": "Russia"
+                    "example": "RU"
                 },
                 "id": {
                     "type": "integer",

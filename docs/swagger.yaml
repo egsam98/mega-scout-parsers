@@ -65,8 +65,8 @@ definitions:
   models.Country:
     properties:
       code:
-        description: В доработке
-        example: Russia
+        description: nullable
+        example: RU
         type: string
       id:
         example: 141

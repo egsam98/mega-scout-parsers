@@ -116,8 +116,15 @@ func Countries() (utils.Set, error) {
 }
 
 func initSelenium() (*selenium.Service, selenium.WebDriver, error) {
-	port, _ := strconv.Atoi(os.Getenv("PORT"))
-	service, err := selenium.NewGeckoDriverService(os.Getenv("GECKODRIVER_PATH"), port+1)
+	port, err := strconv.Atoi(os.Getenv("PORT"))
+	if err != nil {
+		return nil, nil, errors.New("env PORT's must be set as number")
+	}
+	geckoDriverPath := os.Getenv("GECKODRIVER_PATH")
+	if geckoDriverPath == "" {
+		return nil, nil, errors.New("env GECKO_DRIVER_PATH is not set")
+	}
+	service, err := selenium.NewGeckoDriverService(geckoDriverPath, port+1)
 	if err != nil {
 		return nil, nil, errors.WithStack(err)
 	}
@@ -132,14 +139,17 @@ func initSelenium() (*selenium.Service, selenium.WebDriver, error) {
 	return service, driver, errors.WithStack(err)
 }
 
-func _ISOCode(countryName string) (string, string, error) {
+func _ISOCode(countryName string) (name string, code *string, _ error) {
 	country, err := gountry.FindCountryByName(countryName)
 	if err != nil {
 		data, exists := exceptionalCountries[countryName]
 		if !exists {
-			return "", "", errors.Errorf("Country %s's not found", countryName)
+			return "", nil, errors.Errorf("Country %s's not found", countryName)
 		}
-		return data[0], data[1], nil
+		if data[1] != "" {
+			code = &data[1]
+		}
+		return data[0], code, nil
 	}
-	return countryName, country.Alpha2, nil
+	return countryName, &country.Alpha2, nil
 }
