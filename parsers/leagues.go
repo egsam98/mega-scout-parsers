@@ -14,13 +14,14 @@ import (
 
 const BaseUrl = "https://transfermarkt.com"
 
-func Leagues(countryId, seasonPeriod int) (leagues []models.League, _ error) {
+func Leagues(countryId, seasonPeriod int) ([]models.League, error) {
 	url := fmt.Sprintf("%s/wettbewerbe/national/wettbewerbe/%d?saison_id=%d", BaseUrl, countryId, seasonPeriod)
 	doc, err := utils.FetchHtml(url)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	tier := ""
+	leagues := make([]models.League, 0)
 	doc.Find("#yw1 tbody > tr").Each(func(i int, tr *goquery.Selection) {
 		if strings.Contains(tr.Text(), "Cup") {
 			return
@@ -50,7 +51,7 @@ func Leagues(countryId, seasonPeriod int) (leagues []models.League, _ error) {
 		leagues = append(leagues, models.League{
 			Id:       generateId(idStr),
 			Url:      BaseUrl + urlWithoutSeasonId,
-			Title:    strings.Trim(td.Text(), "\t\n "),
+			Name:     strings.Trim(td.Text(), "\t\n "),
 			Logo:     logo,
 			Position: tier,
 		})

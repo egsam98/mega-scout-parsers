@@ -90,14 +90,14 @@ definitions:
         example: 17201
         type: integer
       logo:
+        description: nullable
         example: https://tmssl.akamaized.net/images/logo/normal/ru1.png?lm=1582769594
         type: string
-        x-nullable: true
+      name:
+        example: Premier Liga
+        type: string
       position:
         example: First Tier
-        type: string
-      title:
-        example: Premier Liga
         type: string
       url:
         example: https://transfermarkt.com/premier-liga/startseite/wettbewerb/RU1

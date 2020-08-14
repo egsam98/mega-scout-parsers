@@ -521,17 +521,17 @@ var doc = `{
                     "example": 17201
                 },
                 "logo": {
+                    "description": "nullable",
                     "type": "string",
-                    "x-nullable": true,
                     "example": "https://tmssl.akamaized.net/images/logo/normal/ru1.png?lm=1582769594"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Premier Liga"
                 },
                 "position": {
                     "type": "string",
                     "example": "First Tier"
-                },
-                "title": {
-                    "type": "string",
-                    "example": "Premier Liga"
                 },
                 "url": {
                     "type": "string",
