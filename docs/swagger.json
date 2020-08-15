@@ -500,15 +500,6 @@
                     "type": "integer",
                     "example": 17201
                 },
-                "logo": {
-                    "description": "nullable",
-                    "type": "string",
-                    "example": "https://tmssl.akamaized.net/images/logo/normal/ru1.png?lm=1582769594"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Premier Liga"
-                },
                 "position": {
                     "type": "string",
                     "example": "First Tier"

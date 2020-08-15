@@ -31,6 +31,7 @@ func main() {
 	r.GET("/countries", CountriesController)
 	r.GET("/seasons", SeasonsController)
 	r.GET("/leagues", LeaguesController)
+	r.GET("/league_detail", LeagueDetailController)
 	r.GET("/team_compositions", TeamCompositionsController)
 	r.GET("/player_detail", PlayerDetailController)
 	r.GET("/team_detail", TeamDetailController)

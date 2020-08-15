@@ -89,13 +89,6 @@ definitions:
       id:
         example: 17201
         type: integer
-      logo:
-        description: nullable
-        example: https://tmssl.akamaized.net/images/logo/normal/ru1.png?lm=1582769594
-        type: string
-      name:
-        example: Premier Liga
-        type: string
       position:
         example: First Tier
         type: string
