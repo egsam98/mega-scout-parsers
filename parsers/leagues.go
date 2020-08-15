@@ -16,34 +16,26 @@ const BaseUrl = "https://transfermarkt.com"
 
 func Leagues(countryId, seasonPeriod int) ([]models.League, error) {
 	url := fmt.Sprintf("%s/wettbewerbe/national/wettbewerbe/%d?saison_id=%d", BaseUrl, countryId, seasonPeriod)
-	doc, err := utils.FetchHtml(url)
+	doc, err := utils.RetryFetchHtml(url, 5)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	tier := ""
 	leagues := make([]models.League, 0)
-	doc.Find("#yw1 tbody > tr").Each(func(i int, tr *goquery.Selection) {
+	doc.Find("#yw1 tbody > tr").EachWithBreak(func(i int, tr *goquery.Selection) bool {
 		if strings.Contains(tr.Text(), "Cup") {
-			return
+			return false
 		}
 		td := tr.Find("td").First()
-		tdClass, _ := td.Attr("class")
-		if strings.Contains(tdClass, "extrarow") {
+		if strings.Contains(td.AttrOr("class", ""), "extrarow") {
 			tier = td.Text()
-			return
+			return true
 		}
 		if _, exists := tr.Attr("class"); !exists {
-			return
+			return true
 		}
 		a := td.Find("a").Last()
 		href, _ := a.Attr("href")
-
-		logoStr, exists := td.Find("img").First().Attr("src")
-		var logo *string
-		if exists {
-			logoStr = strings.ReplaceAll(logoStr, "tiny", "normal")
-			logo = &logoStr
-		}
 
 		regex, _ := regexp.Compile(`/saison_id/\d+/?`)
 		urlWithoutSeasonId := regex.Split(href, 2)[0]
@@ -51,10 +43,9 @@ func Leagues(countryId, seasonPeriod int) ([]models.League, error) {
 		leagues = append(leagues, models.League{
 			Id:       generateId(idStr),
 			Url:      BaseUrl + urlWithoutSeasonId,
-			Name:     strings.Trim(td.Text(), "\t\n "),
-			Logo:     logo,
 			Position: tier,
 		})
+		return true
 	})
 	return leagues, nil
 }
