@@ -47,11 +47,13 @@ func TeamCompositions(leagueUrl string, seasonPeriod int) (teams []models.Team, 
 	return teams, nil
 }
 
-func processPlayers(clubUrl string) (players []models.Player, _ error) {
+func processPlayers(clubUrl string) ([]models.Player, error) {
 	doc, err := utils.FetchHtml(clubUrl)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+
+	players := make([]models.Player, 0)
 	doc.Find("#yw1 tbody > tr").Each(func(i int, tr *goquery.Selection) {
 		if _, exists := tr.Attr("class"); !exists {
 			return
