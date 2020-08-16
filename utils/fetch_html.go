@@ -12,11 +12,11 @@ func FetchHtml(url string) (*goquery.Document, error) {
 		return nil, errors.NewFetchHtmlError(err)
 	}
 
+	defer res.Body.Close()
+
 	if res.StatusCode == 500 {
 		return nil, errors.NewTransfermarktError(url)
 	}
-
-	defer res.Body.Close()
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
